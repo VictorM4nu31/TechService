@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -13,8 +14,16 @@ return new class extends Migration
     {
         Schema::create('statuses', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('color')->nullable();
             $table->timestamps();
         });
+
+        DB::table('statuses')->insert([
+            ['name' => 'Abierto', 'color' => '#3b82f6', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'En Progreso', 'color' => '#eab308', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Cerrado', 'color' => '#22c55e', 'created_at' => now(), 'updated_at' => now()],
+        ]);
     }
 
     /**
