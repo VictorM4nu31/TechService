@@ -5,26 +5,29 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Comment extends Model implements HasMedia
+class Activity extends Model
 {
-    use HasFactory, InteractsWithMedia;
-
+    use HasFactory;
     protected $fillable = [
-        'ticket_id',
         'user_id',
-        'content',
+        'ticket_id',
+        'type',
+        'description',
+        'properties',
     ];
 
-    public function ticket(): BelongsTo
-    {
-        return $this->belongsTo(Ticket::class);
-    }
+    protected $casts = [
+        'properties' => 'json',
+    ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function ticket(): BelongsTo
+    {
+        return $this->belongsTo(Ticket::class);
     }
 }

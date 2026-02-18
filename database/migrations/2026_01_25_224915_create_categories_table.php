@@ -20,8 +20,9 @@ return new class extends Migration
         });
 
         DB::table('categories')->insert([
-            ['name' => 'Técnico', 'description' => 'Problemas relacionados con hardware o software.', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Soporte General', 'description' => 'Consultas generales y ayuda al usuario.', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Preventivo', 'description' => 'Mantenimiento preventivo.', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Correctivo', 'description' => 'Mantenimiento correctivo.', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Emergencia', 'description' => 'Atención inmediata.', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 
