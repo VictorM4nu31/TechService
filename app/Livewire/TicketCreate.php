@@ -15,6 +15,7 @@ class TicketCreate extends Component
 
     public $title = '';
     public $description = '';
+    public $equipment_id = '';
     public $equipment = '';
     public $location = '';
     public $priority_id = '';
@@ -27,6 +28,7 @@ class TicketCreate extends Component
         'description' => 'required|min:10',
         'priority_id' => 'required|exists:priorities,id',
         'category_id' => 'required|exists:categories,id',
+        'equipment_id' => 'nullable|exists:equipment,id',
         'equipment' => 'nullable|string',
         'location' => 'nullable|string',
         'maintenance_type' => 'required|string',
@@ -48,6 +50,7 @@ class TicketCreate extends Component
         $ticket = $ticketService->createTicket([
             'title' => $this->title,
             'description' => $this->description,
+            'equipment_id' => $this->equipment_id ?: null,
             'equipment' => $this->equipment,
             'location' => $this->location,
             'maintenance_type' => $this->maintenance_type,
@@ -69,7 +72,8 @@ class TicketCreate extends Component
     {
         $priorities = Priority::orderBy('level', 'desc')->get();
         $categories = Category::all();
+        $equipments = \App\Models\Equipment::where('user_id', auth()->id())->get();
 
-        return view('livewire.ticket-create', compact('priorities', 'categories'));
+        return view('livewire.ticket-create', compact('priorities', 'categories', 'equipments'));
     }
 }

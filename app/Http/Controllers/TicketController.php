@@ -19,7 +19,7 @@ class TicketController extends Controller
             ->when(!auth()->user()->hasAnyRole(['Admin', 'Agente']), fn($q) => $q->where('created_by', auth()->id()))
             ->with(['status', 'priority', 'category', 'creator', 'assignee'])
             ->latest()
-            ->get();
+            ->paginate(15);
 
         return view('tickets.index', compact('tickets'));
     }

@@ -29,6 +29,10 @@
                     :current="request()->routeIs('tickets.create')" wire:navigate>
                     {{ __('Nuevo Ticket') }}
                 </flux:sidebar.item>
+                <flux:sidebar.item icon="cpu-chip" :href="route('equipment.index')"
+                    :current="request()->routeIs('equipment.*')" wire:navigate>
+                    {{ __('Mis Equipos') }}
+                </flux:sidebar.item>
             </flux:sidebar.group>
 
             {{-- Admin & Agente --}}

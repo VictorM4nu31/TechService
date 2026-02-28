@@ -24,6 +24,7 @@ class Ticket extends Model implements HasMedia
         'team_id',
         'due_date',
         'equipment',
+        'equipment_id',
         'location',
         'maintenance_type',
     ];
@@ -60,6 +61,11 @@ class Ticket extends Model implements HasMedia
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
+    }
+
+    public function device(): BelongsTo
+    {
+        return $this->belongsTo(Equipment::class, 'equipment_id');
     }
 
     public function comments(): HasMany

@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
-class StatusController extends Controller
-{
-    //
-}
+/**
+ * Stub vacío — gestión de Estados vía seeders/admin panel futuro.
+ */
+class StatusController extends Controller {}

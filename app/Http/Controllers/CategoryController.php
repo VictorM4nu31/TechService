@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
-class CategoryController extends Controller
-{
-    //
-}
+/**
+ * Stub vacío — gestión de Categorías vía seeders/admin panel futuro.
+ * No eliminar para mantener convención de namespacing.
+ */
+class CategoryController extends Controller {}

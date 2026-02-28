@@ -15,52 +15,42 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $isStaff = $user->hasAnyRole(['Admin', 'Agente']);
+        $cacheKey = "dashboard:{$user->id}";
 
-        // Stats
-        $stats = [
-            'total' => Ticket::when(!$isStaff, fn($q) => $q->where('created_by', $user->id))->count(),
-            'open' => Ticket::whereHas('status', fn($q) => $q->where('name', 'Abierto'))
-                        ->when(!$isStaff, fn($q) => $q->where('created_by', $user->id))
-                        ->count(),
-            'in_progress' => Ticket::whereHas('status', fn($q) => $q->where('name', 'En Progreso'))
-                            ->when(!$isStaff, fn($q) => $q->where('created_by', $user->id))
-                            ->count(),
-            'resolved' => Ticket::whereHas('status', fn($q) => $q->where('name', 'Cerrado'))
-                            ->when(!$isStaff, fn($q) => $q->where('created_by', $user->id))
-                            ->count(),
-        ];
+        $data = cache()->remember($cacheKey, 60, function () use ($user, $isStaff) {
+            $stats = [
+                'total' => Ticket::when(!$isStaff, fn($q) => $q->where('created_by', $user->id))->count(),
+                'open' => Ticket::whereHas('status', fn($q) => $q->where('name', 'Abierto'))
+                            ->when(!$isStaff, fn($q) => $q->where('created_by', $user->id))->count(),
+                'in_progress' => Ticket::whereHas('status', fn($q) => $q->where('name', 'En Progreso'))
+                                ->when(!$isStaff, fn($q) => $q->where('created_by', $user->id))->count(),
+                'resolved' => Ticket::whereHas('status', fn($q) => $q->where('name', 'Cerrado'))
+                                ->when(!$isStaff, fn($q) => $q->where('created_by', $user->id))->count(),
+            ];
 
-        // Critical Tickets (High priority and not closed)
-        $criticalTickets = Ticket::whereHas('priority', fn($q) => $q->where('level', '>=', 3))
-            ->whereHas('status', fn($q) => $q->where('name', '!=', 'Cerrado'))
-            ->when(!$isStaff, fn($q) => $q->where('created_by', $user->id))
-            ->with(['status', 'priority'])
-            ->latest()
-            ->take(3)
-            ->get();
+            $criticalTickets = Ticket::whereHas('priority', fn($q) => $q->where('level', '>=', 3))
+                ->whereHas('status', fn($q) => $q->where('name', '!=', 'Cerrado'))
+                ->when(!$isStaff, fn($q) => $q->where('created_by', $user->id))
+                ->with(['status', 'priority'])
+                ->latest()->take(3)->get();
 
-        // Recent Tickets
-        $recentTickets = Ticket::when(!$isStaff, fn($q) => $q->where('created_by', $user->id))
-            ->with(['status', 'priority'])
-            ->latest()
-            ->take(5)
-            ->get();
+            $recentTickets = Ticket::when(!$isStaff, fn($q) => $q->where('created_by', $user->id))
+                ->with(['status', 'priority'])
+                ->latest()->take(5)->get();
 
-        // Category distribution (for chart)
-        $categories = Category::withCount(['tickets' => function($q) use ($isStaff, $user) {
-            $q->when(!$isStaff, fn($sq) => $sq->where('created_by', $user->id));
-        }])->get();
+            $categories = Category::withCount(['tickets' => function ($q) use ($isStaff, $user) {
+                $q->when(!$isStaff, fn($sq) => $sq->where('created_by', $user->id));
+            }])->get();
 
-        // Activity log
-        $activities = Activity::with(['user', 'ticket'])
-            ->when(!$isStaff, function($q) use ($user) {
-                $q->whereHas('ticket', fn($sq) => $sq->where('created_by', $user->id))
-                  ->orWhere('user_id', $user->id);
-            })
-            ->latest()
-            ->take(10)
-            ->get();
+            $activities = Activity::with(['user', 'ticket'])
+                ->when(!$isStaff, fn($q) => $q
+                    ->whereHas('ticket', fn($sq) => $sq->where('created_by', $user->id))
+                    ->orWhere('user_id', $user->id))
+                ->latest()->take(10)->get();
 
-        return view('dashboard', compact('stats', 'criticalTickets', 'recentTickets', 'categories', 'activities'));
+            return compact('stats', 'criticalTickets', 'recentTickets', 'categories', 'activities');
+        });
+
+        return view('dashboard', $data);
     }
 }

@@ -23,13 +23,21 @@
                     <div class="space-y-4 pt-4">
                         <flux:input wire:model="title" label="{{ __('Título del Ticket *') }}"
                             placeholder="{{ __('Ej: No funciona la impresora') }}" required />
-                        <flux:textarea wire:model="description" label="{{ __('Descripción Detallada *') }}"
+                        <flux:textarea wire:model="description" label="{{ __('Descripción Detallada *') }}" x-data
+                            x-autosize
                             placeholder="{{ __('Proporcione todos los detalles relevantes sobre el problema, incluyendo mensajes de error, pasos para reproducir el problema, etc.') }}"
                             required rows="4" />
                     </div>
 
                     <div class="grid md:grid-cols-2 gap-4">
-                        <flux:input wire:model="equipment" label="{{ __('Equipo Afectado *') }}"
+                        <flux:select wire:model="equipment_id" label="{{ __('Equipo de Inventario') }}">
+                            <flux:select.option value="">{{ __('No asignado') }}</flux:select.option>
+                            @foreach($equipments as $eq)
+                                <flux:select.option value="{{ $eq->id }}">{{ $eq->name }} ({{ $eq->serial_number }})
+                                </flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:input wire:model="equipment" label="{{ __('Equipo Detalle Textual (Opcional)') }}"
                             placeholder="{{ __('Ej: PC-001, Impresora HP...') }}" />
                         <flux:input wire:model="location" label="{{ __('Ubicación *') }}"
                             placeholder="{{ __('Ej: Piso 3, Oficina 301') }}" />
@@ -90,7 +98,7 @@
                     <div class="flex flex-wrap gap-2">
                         @foreach ($priorities as $priority)
                                                 <button type="button" wire:click="$set('priority_id', {{ $priority->id }})" class="px-4 py-2 rounded-lg text-xs font-bold transition-all border-2 {{ $priority_id == $priority->id ? 'scale-105 shadow-lg' : 'opacity-50' }} 
-                                                                                                                                                        {{ match ($priority->name) {
+                                                                                                                                                                                                                                {{ match ($priority->name) {
                                 'Alta' => 'bg-red-500/10 text-red-500 border-red-500',
                                 'Media' => 'bg-yellow-500/10 text-yellow-500 border-yellow-500',
                                 'Baja' => 'bg-green-500/10 text-green-500 border-green-500',
@@ -112,11 +120,11 @@
                                 <div
                                     class="p-2 rounded-lg bg-zinc-800 {{ $category_id == $category->id ? 'text-blue-500' : 'text-zinc-500' }}">
                                     <flux:icon :name="match($category->name) {
-                                                            'Preventivo' => 'shield-check',
-                                                            'Correctivo' => 'wrench-screwdriver',
-                                                            'Emergencia' => 'exclamation-triangle',
-                                                            default => 'tag',
-                                                        }" size="sm" />
+                                                                        'Preventivo' => 'shield-check',
+                                                                        'Correctivo' => 'wrench-screwdriver',
+                                                                        'Emergencia' => 'exclamation-triangle',
+                                                                        default => 'tag',
+                                                                    }" size="sm" />
                                 </div>
                                 <flux:text
                                     class="font-medium {{ $category_id == $category->id ? 'text-zinc-100' : 'text-zinc-400' }}">
@@ -150,9 +158,13 @@
 
                 {{-- Actions --}}
                 <div class="grid gap-3 pt-4">
-                    <flux:button wire:click="save" variant="primary"
+                    <flux:button wire:click="save" wire:loading.attr="disabled" wire:target="save" variant="primary"
                         class="w-full font-bold shadow-lg shadow-blue-500/20">
-                        {{ __('Crear Ticket') }}
+                        <span wire:loading.remove wire:target="save">{{ __('Crear Ticket') }}</span>
+                        <span wire:loading wire:target="save" class="flex items-center gap-2">
+                            <flux:icon name="arrow-path" size="xs" class="animate-spin" />
+                            {{ __('Guardando...') }}
+                        </span>
                     </flux:button>
                     <flux:button :href="route('tickets.index')" wire:navigate variant="ghost" class="w-full">
                         {{ __('Cancelar') }}

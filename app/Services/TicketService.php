@@ -58,6 +58,11 @@ class TicketService
     public function resolveTicket(Ticket $ticket)
     {
         $resolvedStatus = \App\Models\Status::where('name', 'Cerrado')->first();
+
+        if (!$resolvedStatus) {
+            throw new \RuntimeException('El estado "Cerrado" no existe en la base de datos. Por favor ejecute los seeders.');
+        }
+
         $this->updateStatus($ticket, $resolvedStatus->id);
         $this->logActivity($ticket, 'resolved', 'resolvió el ticket');
     }

@@ -21,7 +21,7 @@
         {{-- Top Charts Row --}}
         <div class="grid gap-6 md:grid-cols-3">
             {{-- Line Chart Placeholder --}}
-            <flux:card class="flex flex-col gap-4 bg-zinc-900 border-zinc-800">
+            <flux:card x-data="{ shown: false }" x-intersect.once.margin.-10%.0px="shown = true" :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'" class="flex flex-col gap-4 bg-zinc-900 border-zinc-800 transition-all duration-700 ease-out">
                 <div class="flex items-center justify-between">
                     <flux:text size="sm" class="font-medium text-zinc-400">{{ __('Tickets Creados vs Resueltos') }}</flux:text>
                 </div>
@@ -52,7 +52,7 @@
             </flux:card>
 
             {{-- Donut Chart --}}
-            <flux:card class="flex flex-col gap-4 bg-zinc-900 border-zinc-800">
+            <flux:card x-data="{ shown: false }" x-intersect.once.margin.-10%.0px="shown = true" :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'" class="flex flex-col gap-4 bg-zinc-900 border-zinc-800 transition-all duration-700 delay-100 ease-out">
                 <flux:text size="sm" class="font-medium text-zinc-400">{{ __('Distribución por Categoría') }}</flux:text>
                 <div class="flex items-center justify-center p-4">
                     <div class="relative size-40">
@@ -87,7 +87,7 @@
             </flux:card>
 
             {{-- Bar Chart --}}
-            <flux:card class="flex flex-col gap-4 bg-zinc-900 border-zinc-800">
+            <flux:card x-data="{ shown: false }" x-intersect.once.margin.-10%.0px="shown = true" :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'" class="flex flex-col gap-4 bg-zinc-900 border-zinc-800 transition-all duration-700 delay-200 ease-out">
                 <flux:heading size="md">{{ __('Tickets por Estado') }}</flux:heading>
                 <div class="flex flex-col gap-3 mt-4">
                     @php 

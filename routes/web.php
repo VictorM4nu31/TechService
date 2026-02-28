@@ -6,7 +6,7 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'throttle:60,1'])->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('tickets', [\App\Http\Controllers\TicketController::class, 'index'])->name('tickets.index');
@@ -15,6 +15,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('tickets/{ticket}/edit', [\App\Http\Controllers\TicketController::class, 'edit'])->name('tickets.edit');
 
     Route::get('teams', [\App\Http\Controllers\TeamController::class, 'index'])->name('teams.index');
+
+    Route::resource('equipment', \App\Http\Controllers\EquipmentController::class);
 });
 
 require __DIR__.'/settings.php';

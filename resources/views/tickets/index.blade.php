@@ -33,21 +33,27 @@
                             </flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge :color="match($ticket->status->name) {
-                                                    'Abierto' => 'blue',
-                                                    'En Progreso' => 'yellow',
-                                                    'Cerrado' => 'green',
-                                                    default => 'zinc',
-                                                }">{{ $ticket->status->name }}</flux:badge>
+                                                            'Abierto' => 'blue',
+                                                            'En Progreso' => 'yellow',
+                                                            'Cerrado' => 'green',
+                                                            default => 'zinc',
+                                                        }">{{ $ticket->status->name }}</flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>
-                                <flux:badge size="sm" variant="outline">
+                                <flux:badge size="sm" variant="outline" x-data
+                                    x-tooltip="'{{ __('Prioridad Nivel: :level', ['level' => $ticket->priority->name]) }}'">
                                     {{ $ticket->priority->name }}
                                 </flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>{{ $ticket->category->name }}</flux:table.cell>
                             <flux:table.cell>{{ $ticket->creator->name }}</flux:table.cell>
                             <flux:table.cell>{{ $ticket->assignee?->name ?? __('Sin asignar') }}</flux:table.cell>
-                            <flux:table.cell>{{ $ticket->created_at->format('d/m/Y H:i') }}</flux:table.cell>
+                            <flux:table.cell>
+                                <span class="cursor-help underline decoration-dotted" x-data
+                                    x-tooltip="'{{ $ticket->created_at->diffForHumans() }}'">
+                                    {{ $ticket->created_at->format('d/m/Y H:i') }}
+                                </span>
+                            </flux:table.cell>
                         </flux:table.row>
                     @empty
                         <flux:table.row>
@@ -59,5 +65,9 @@
                 </flux:table.rows>
             </flux:table>
         </flux:card>
+
+        @if($tickets->hasPages())
+            <div class="mt-2">{{ $tickets->links() }}</div>
+        @endif
     </div>
 </x-layouts::app>

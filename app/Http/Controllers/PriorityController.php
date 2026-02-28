@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
-class PriorityController extends Controller
-{
-    //
-}
+/**
+ * Stub vacío — gestión de Prioridades vía seeders/admin panel futuro.
+ */
+class PriorityController extends Controller {}
