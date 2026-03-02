@@ -63,7 +63,7 @@ class Ticket extends Model implements HasMedia
         return $this->belongsTo(Team::class);
     }
 
-    public function device(): BelongsTo
+    public function equipment(): BelongsTo
     {
         return $this->belongsTo(Equipment::class, 'equipment_id');
     }

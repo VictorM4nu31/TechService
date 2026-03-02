@@ -12,12 +12,18 @@ class Equipment extends Model
     use HasFactory;
     protected $fillable = [
         'user_id',
+        'client_id',
         'name',
         'brand',
         'model',
         'serial_number',
         'type',
     ];
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class);
+    }
 
     public function owner(): BelongsTo
     {

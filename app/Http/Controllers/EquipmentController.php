@@ -34,6 +34,7 @@ class EquipmentController extends Controller
             'model'         => 'nullable|string|max:100',
             'serial_number' => 'nullable|string|max:150',
             'type'          => 'required|string|in:Computadora,Impresora,Red,Servidor,Teléfono,Otro',
+            'client_id'     => 'nullable|exists:clients,id',
         ]);
 
         $validated['user_id'] = Auth::id();
@@ -47,7 +48,7 @@ class EquipmentController extends Controller
     public function show(Equipment $equipment)
     {
         $this->authorizeAccess($equipment);
-        $equipment->load(['tickets.status', 'tickets.priority', 'owner']);
+        $equipment->load(['tickets.status', 'tickets.priority', 'owner', 'client', 'tickets.category']);
         return view('equipment.show', compact('equipment'));
     }
 

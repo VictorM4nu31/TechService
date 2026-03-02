@@ -17,6 +17,10 @@ Route::middleware(['auth', 'verified', 'throttle:60,1'])->group(function () {
     Route::get('teams', [\App\Http\Controllers\TeamController::class, 'index'])->name('teams.index');
 
     Route::resource('equipment', \App\Http\Controllers\EquipmentController::class);
+    Route::resource('clients', \App\Http\Controllers\ClientController::class);
+    Route::get('calendar', function () {
+        return view('calendar');
+    })->name('calendar');
 });
 
 require __DIR__.'/settings.php';

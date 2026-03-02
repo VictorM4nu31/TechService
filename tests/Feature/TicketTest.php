@@ -44,13 +44,17 @@ test('admin can see all tickets', function () {
     $priority = Priority::first();
     $category = Category::first();
 
-    // Clear existing tickets so our test ticket appears on page 1
-    Ticket::query()->delete();
-
-    $ticket = Ticket::factory()->create(['created_by' => $user->id, 'status_id' => $status->id, 'priority_id' => $priority->id, 'category_id' => $category->id]);
+    $ticket = Ticket::factory()->create([
+        'title' => 'Unique Admin Ticket Title',
+        'created_by' => $user->id,
+        'status_id' => $status->id,
+        'priority_id' => $priority->id,
+        'category_id' => $category->id,
+        'created_at' => now()->addMinute(),
+    ]);
 
     $this->actingAs($admin)->get(route('tickets.index'))
-        ->assertSee($ticket->title);
+        ->assertSee('Unique Admin Ticket Title');
 });
 
 // --- IDOR Prevention ---

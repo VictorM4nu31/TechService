@@ -8,19 +8,50 @@
 <body class="min-h-screen bg-white dark:bg-zinc-800">
     <flux:sidebar sticky collapsible="mobile"
         class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-        <flux:sidebar.header>
+        <flux:sidebar.header class="pb-0!">
             <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
             <flux:sidebar.collapse class="lg:hidden" />
         </flux:sidebar.header>
 
-        <flux:sidebar.nav>
-            <flux:sidebar.group :heading="__('Principal')" class="grid text-xs font-semibold uppercase text-zinc-500">
+        <style>
+            /* Hide scrollbar for Chrome, Safari and Opera */
+            [data-flux-sidebar] nav::-webkit-scrollbar,
+            [data-flux-sidebar]::-webkit-scrollbar {
+                display: none;
+            }
+            /* Hide scrollbar for IE, Edge and Firefox */
+            [data-flux-sidebar] nav,
+            [data-flux-sidebar] {
+                -ms-overflow-style: none;  /* IE and Edge */
+                scrollbar-width: none;  /* Firefox */
+            }
+        </style>
+
+        <flux:sidebar.nav class="gap-y-1">
+            {{-- Sección: General --}}
+            <flux:sidebar.group :heading="__('General')" class="grid text-xs font-semibold uppercase text-zinc-500">
                 <flux:sidebar.item icon="squares-2x2" :href="route('dashboard')"
                     :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Panel de Control') }}
                 </flux:sidebar.item>
+            </flux:sidebar.group>
+
+            {{-- Sección: Soporte Técnico --}}
+            <flux:sidebar.group :heading="auth()->user()->hasRole('Cliente') ? __('Soporte') : __('Soporte Técnico')" class="grid text-xs font-semibold uppercase text-zinc-500 mt-2">
+                @role('Cliente')
                 <flux:sidebar.item icon="ticket" :href="route('tickets.index')"
-                    :current="request()->routeIs('tickets.index')" wire:navigate>
+                    :current="request()->routeIs('tickets.index') && !request()->hasAny(['status', 'category'])" wire:navigate>
+                    {{ __('Mis Solicitudes') }}
+                    <flux:badge variant="light" color="blue" class="ml-auto" size="sm">{{ $sidebarStats['total'] }}
+                    </flux:badge>
+                </flux:sidebar.item>
+                <flux:sidebar.item icon="plus-circle" :href="route('tickets.create')"
+                    :current="request()->routeIs('tickets.create')" wire:navigate>
+                    {{ __('Nueva Solicitud') }}
+                </flux:sidebar.item>
+                @else
+                <flux:sidebar.item icon="ticket" :href="route('tickets.index')"
+                    :current="request()->routeIs('tickets.index') && !request()->hasAny(['status', 'category'])" wire:navigate>
                     {{ __('Todos los Tickets') }}
                     <flux:badge variant="light" color="blue" class="ml-auto" size="sm">{{ $sidebarStats['total'] }}
                     </flux:badge>
@@ -29,81 +60,64 @@
                     :current="request()->routeIs('tickets.create')" wire:navigate>
                     {{ __('Nuevo Ticket') }}
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="cpu-chip" :href="route('equipment.index')"
-                    :current="request()->routeIs('equipment.*')" wire:navigate>
-                    {{ __('Mis Equipos') }}
-                </flux:sidebar.item>
+                @endrole
             </flux:sidebar.group>
 
-            {{-- Admin & Agente --}}
-            @hasanyrole('Admin|Agente')
-            <flux:sidebar.group :heading="__('Por Estado')"
-                class="grid text-xs font-semibold uppercase text-zinc-500 mt-4">
+            {{-- Sección de Accesos Directos --}}
+            <flux:sidebar.group :heading="auth()->user()->hasRole('Cliente') ? __('Mis Pendientes') : __('Accesos Directos')"
+                class="grid text-xs font-semibold uppercase text-zinc-500 mt-2">
+                @role('Cliente')
                 <flux:sidebar.item icon="clock" :href="route('tickets.index', ['status' => 'Abierto'])" wire:navigate>
-                    {{ __('Abiertos') }}
+                    {{ __('Tickets Abiertos') }}
                     <flux:badge variant="light" color="blue" class="ml-auto" size="sm">{{ $sidebarStats['open'] }}
                     </flux:badge>
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="exclamation-triangle"
-                    :href="route('tickets.index', ['status' => 'En Progreso'])" wire:navigate>
-                    {{ __('En Progreso') }}
-                    <flux:badge variant="light" color="yellow" class="ml-auto" size="sm">
-                        {{ $sidebarStats['in_progress'] }}
+                @else
+                <flux:sidebar.item icon="clock" :href="route('tickets.index', ['status' => 'Abierto'])" wire:navigate>
+                    {{ __('Tickets Abiertos') }}
+                    <flux:badge variant="light" color="blue" class="ml-auto" size="sm">{{ $sidebarStats['open'] }}
                     </flux:badge>
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="check-circle" :href="route('tickets.index', ['status' => 'Cerrado'])"
+                <flux:sidebar.item icon="fire" :href="route('tickets.index', ['category' => 'Emergencia'])" wire:navigate>
+                    {{ __('Atención Urgente') }}
+                </flux:sidebar.item>
+                @endrole
+            </flux:sidebar.group>
+
+            {{-- Sección: Gestión CMMS / Equipos y Mantenimiento --}}
+            <flux:sidebar.group :heading="auth()->user()->hasRole('Cliente') ? __('Equipos y Mantenimiento') : __('Gestión CMMS')"
+                class="grid text-xs font-semibold uppercase text-zinc-500 mt-2">
+                <flux:sidebar.item icon="cpu-chip" :href="route('equipment.index')"
+                    :current="request()->routeIs('equipment.*')" wire:navigate>
+                    {{ auth()->user()->hasRole('Cliente') ? __('Mis Equipos') : __('Inventario de Equipos') }}
+                </flux:sidebar.item>
+
+                @hasanyrole('Admin|Agente')
+                <flux:sidebar.item icon="building-office" :href="route('clients.index')"
+                    :current="request()->routeIs('clients.*')" wire:navigate>
+                    {{ __('Directorio de Clientes') }}
+                </flux:sidebar.item>
+                @endhasanyrole
+
+                <flux:sidebar.item icon="calendar" :href="route('calendar')" :current="request()->routeIs('calendar')"
                     wire:navigate>
-                    {{ __('Resueltos') }}
-                    <flux:badge variant="light" color="green" class="ml-auto" size="sm">{{ $sidebarStats['resolved'] }}
-                    </flux:badge>
+                    {{ auth()->user()->hasRole('Cliente') ? __('Mi Calendario') : __('Calendario de Mtto.') }}
                 </flux:sidebar.item>
             </flux:sidebar.group>
 
-            <flux:sidebar.group :heading="__('Por Categoría')"
-                class="grid text-xs font-semibold uppercase text-zinc-500 mt-4">
-                <flux:sidebar.item icon="shield-check" :href="route('tickets.index', ['category' => 'Preventivo'])"
-                    wire:navigate>
-                    {{ __('Preventivo') }}
-                </flux:sidebar.item>
-                <flux:sidebar.item icon="wrench" :href="route('tickets.index', ['category' => 'Correctivo'])"
-                    wire:navigate>
-                    {{ __('Correctivo') }}
-                </flux:sidebar.item>
-                <flux:sidebar.item icon="exclamation-circle"
-                    :href="route('tickets.index', ['category' => 'Emergencia'])" wire:navigate>
-                    {{ __('Emergencia') }}
-                </flux:sidebar.item>
-            </flux:sidebar.group>
-            @endhasanyrole
-
-            {{-- Cliente --}}
-            @role('Cliente')
-            <flux:sidebar.group :heading="__('Mis Solicitudes')"
-                class="grid text-xs font-semibold uppercase text-zinc-500 mt-4">
-                <flux:sidebar.item icon="ticket" :href="route('tickets.index')"
-                    :current="request()->routeIs('tickets.index')" wire:navigate>
-                    {{ __('Mis Tickets') }}
-                </flux:sidebar.item>
-                <flux:sidebar.item icon="plus-circle" :href="route('tickets.create')"
-                    :current="request()->routeIs('tickets.create')" wire:navigate>
-                    {{ __('Nueva Solicitud') }}
-                </flux:sidebar.item>
-            </flux:sidebar.group>
-            @endrole
-
-            {{-- Solo Admin --}}
+            {{-- Sección: Administración (Solo Admin) --}}
             @role('Admin')
-            <flux:sidebar.group :heading="__('Gestión')"
-                class="grid text-xs font-semibold uppercase text-zinc-500 mt-4">
-                <flux:sidebar.item icon="chart-bar" href="#" wire:navigate>
-                    {{ __('Reportes') }}
-                </flux:sidebar.item>
+            <flux:sidebar.group :heading="__('Administración')"
+                class="grid text-xs font-semibold uppercase text-zinc-500 mt-2">
                 <flux:sidebar.item icon="user-group" :href="route('teams.index')"
                     :current="request()->routeIs('teams.index')" wire:navigate>
-                    {{ __('Equipos') }}
+                    {{ __('Plantilla Técnica') }}
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="cog-6-tooth" :href="route('profile.edit')" wire:navigate>
-                    {{ __('Configuración') }}
+                <flux:sidebar.item icon="chart-bar" href="#" wire:navigate>
+                    {{ __('Dashboard de Reportes') }}
+                </flux:sidebar.item>
+                <flux:sidebar.item icon="cog-6-tooth" :href="route('profile.edit')" :current="request()->routeIs('profile.edit')" wire:navigate>
+                    {{ __('Ajustes del Sistema') }}
                 </flux:sidebar.item>
             </flux:sidebar.group>
             @endrole

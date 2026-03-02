@@ -58,18 +58,25 @@
                                 </flux:text>
                             </div>
                             <flux:badge size="sm" :color="match($ticket->status->name ?? '') {
-                                            'Abierto' => 'blue',
-                                            'En Progreso' => 'yellow',
-                                            'Cerrado' => 'green',
-                                            default => 'zinc',
-                                        }">
+                                                'Abierto' => 'blue',
+                                                'En Progreso' => 'yellow',
+                                                'Cerrado' => 'green',
+                                    <flux:badge size=" sm" :color="match($ticket->status->name ?? '') {
+                                                'Abierto' => 'blue',
+                                                'En Progreso' => 'yellow',
+                                                'Cerrado' => 'green',
+                                                default => 'zinc',
+                                            }">
                                 {{ $ticket->status->name ?? '—' }}
                             </flux:badge>
+                            <flux:text size="sm" class="ml-2 text-zinc-400">
+                                [{{ $ticket->category->name ?? 'N/A' }}]
+                            </flux:text>
                         </a>
                     @empty
                         <div class="text-center py-8 text-zinc-500">
                             <flux:icon name="ticket" size="lg" class="mx-auto mb-2 opacity-40" />
-                            <flux:text>{{ __('Sin tickets asociados.') }}</flux:text>
+                            <flux:text>{{ __('Sin intervención técnica registrada.') }}</flux:text>
                         </div>
                     @endforelse
                 </flux:card>
@@ -100,13 +107,19 @@
                             <flux:text class="mt-1 font-medium font-mono text-sm">{{ $equipment->serial_number ?? '—' }}
                             </flux:text>
                         </div>
+                        <div class="pt-2 border-t border-zinc-800">
+                            <flux:text size="xs" class="text-zinc-500 uppercase font-bold">{{ __('Cliente Externo') }}
+                            </flux:text>
+                            <flux:text class="mt-1 font-medium text-blue-400">
+                                {{ $equipment->client->name ?? __('Sin Cliente') }}</flux:text>
+                        </div>
                         <div>
-                            <flux:text size="xs" class="text-zinc-500 uppercase font-bold">{{ __('Propietario') }}
+                            <flux:text size="xs" class="text-zinc-500 uppercase font-bold">{{ __('Contacto / Dueño') }}
                             </flux:text>
                             <flux:text class="mt-1 font-medium">{{ $equipment->owner->name }}</flux:text>
                         </div>
                         <div>
-                            <flux:text size="xs" class="text-zinc-500 uppercase font-bold">{{ __('Registrado') }}
+                            <flux:text size="xs" class="text-zinc-500 uppercase font-bold">{{ __('Fecha Registro') }}
                             </flux:text>
                             <flux:text class="mt-1 text-sm" x-data
                                 x-tooltip="'{{ $equipment->created_at->format('d/m/Y H:i') }}'">
