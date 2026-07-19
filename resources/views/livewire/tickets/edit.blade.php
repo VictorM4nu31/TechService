@@ -1,59 +1,52 @@
 <?php
-use function Livewire\Volt\{state, rules, computed};
+
+use App\Enums\TicketCategory;
+use App\Enums\TicketPriority;
 use App\Models\Ticket;
-use App\Models\Status;
-use App\Models\Priority;
-use App\Models\Category;
 use App\Models\Equipment;
+use App\Services\TicketService;
+use function Livewire\Volt\{state, rules, computed};
 
 state([
     'ticket',
-    'title' => fn($ticket) => $ticket->title,
-    'description' => fn($ticket) => $ticket->description,
-    'equipment' => fn($ticket) => $ticket->equipment,
-    'equipment_id' => fn($ticket) => $ticket->equipment_id,
-    'location' => fn($ticket) => $ticket->location,
-    'priority_id' => fn($ticket) => $ticket->priority_id,
-    'category_id' => fn($ticket) => $ticket->category_id,
-    'maintenance_type' => fn($ticket) => $ticket->maintenance_type,
+    'title' => fn ($ticket) => $ticket->title,
+    'description' => fn ($ticket) => $ticket->description,
+    'equipment_id' => fn ($ticket) => $ticket->equipment_id,
+    'location' => fn ($ticket) => $ticket->location,
+    'priority' => fn ($ticket) => $ticket->priority,
+    'category' => fn ($ticket) => $ticket->category,
+    'maintenance_type' => fn ($ticket) => $ticket->maintenance_type,
 ]);
 
 rules([
     'title' => 'required|min:5',
     'description' => 'required',
-    'priority_id' => 'required|exists:priorities,id',
-    'category_id' => 'required|exists:categories,id',
+    'priority' => ['required', 'in:'.implode(',', array_column(TicketPriority::cases(), 'value'))],
+    'category' => ['required', 'in:'.implode(',', array_column(TicketCategory::cases(), 'value'))],
     'equipment_id' => 'nullable|exists:equipment,id',
 ]);
 
-$save = function () {
+$save = function (TicketService $ticketService) {
     $this->validate();
 
     $this->ticket->update([
         'title' => $this->title,
         'description' => $this->description,
-        'equipment' => $this->equipment,
         'equipment_id' => $this->equipment_id,
         'location' => $this->location,
-        'priority_id' => $this->priority_id,
-        'category_id' => $this->category_id,
+        'priority' => $this->priority,
+        'category' => $this->category,
         'maintenance_type' => $this->maintenance_type,
     ]);
 
-    // Log update activity
-    \App\Models\Activity::create([
-        'user_id' => auth()->id(),
-        'ticket_id' => $this->ticket->id,
-        'type' => 'updated',
-        'description' => 'actualizó los detalles del ticket',
-    ]);
+    $ticketService->logActivity($this->ticket, 'updated', 'actualizó los detalles del ticket');
 
     return redirect()->route('tickets.show', $this->ticket)->with('status', 'Ticket actualizado con éxito.');
 };
 
-$priorities = computed(fn() => Priority::orderBy('level', 'desc')->get());
-$categories = computed(fn() => Category::all());
-$equipments = computed(fn() => Equipment::where('user_id', $this->ticket->created_by)->get());
+$priorities = computed(fn () => TicketPriority::cases());
+$categories = computed(fn () => TicketCategory::cases());
+$equipments = computed(fn () => Equipment::where('user_id', $this->ticket->created_by)->get());
 
 ?>
 <div>
@@ -74,7 +67,6 @@ $equipments = computed(fn() => Equipment::where('user_id', $this->ticket->create
                                 </flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:input wire:model="equipment" label="{{ __('Equipo Detalle Textual (Opcional)') }}" />
                         <flux:input wire:model="location" label="{{ __('Ubicación') }}" />
                     </div>
                 </flux:card>
@@ -90,15 +82,15 @@ $equipments = computed(fn() => Equipment::where('user_id', $this->ticket->create
 
             <div class="space-y-6">
                 <flux:card class="bg-zinc-900 border-zinc-800 space-y-4">
-                    <flux:select wire:model="priority_id" label="{{ __('Prioridad') }}">
+                    <flux:select wire:model="priority" label="{{ __('Prioridad') }}">
                         @foreach($this->priorities as $priority)
-                            <flux:select.option value="{{ $priority->id }}">{{ $priority->name }}</flux:select.option>
+                            <flux:select.option value="{{ $priority->value }}">{{ $priority->label() }}</flux:select.option>
                         @endforeach
                     </flux:select>
 
-                    <flux:select wire:model="category_id" label="{{ __('Categoría') }}">
+                    <flux:select wire:model="category" label="{{ __('Categoría') }}">
                         @foreach($this->categories as $category)
-                            <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
+                            <flux:select.option value="{{ $category->value }}">{{ $category->label() }}</flux:select.option>
                         @endforeach
                     </flux:select>
 

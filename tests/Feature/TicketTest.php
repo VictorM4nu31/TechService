@@ -1,14 +1,12 @@
 <?php
 
-use App\Models\User;
+use App\Enums\TicketCategory;
+use App\Enums\TicketPriority;
 use App\Models\Ticket;
-use App\Models\Status;
-use App\Models\Priority;
-use App\Models\Category;
+use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 
 beforeEach(function () {
-    // Seed roles, statuses, priorities, and categories needed for ticket creation
     $this->seed(DatabaseSeeder::class);
 });
 
@@ -24,12 +22,8 @@ test('regular user only sees their own tickets', function () {
     $owner = User::factory()->create()->assignRole('Cliente');
     $other = User::factory()->create()->assignRole('Cliente');
 
-    $status   = Status::first();
-    $priority = Priority::first();
-    $category = Category::first();
-
-    $mine  = Ticket::factory()->create(['created_by' => $owner->id,   'status_id' => $status->id, 'priority_id' => $priority->id, 'category_id' => $category->id]);
-    $theirs = Ticket::factory()->create(['created_by' => $other->id,  'status_id' => $status->id, 'priority_id' => $priority->id, 'category_id' => $category->id]);
+    $mine = Ticket::factory()->create(['created_by' => $owner->id]);
+    $theirs = Ticket::factory()->create(['created_by' => $other->id]);
 
     $this->actingAs($owner)->get(route('tickets.index'))
         ->assertSee($mine->title)
@@ -38,18 +32,11 @@ test('regular user only sees their own tickets', function () {
 
 test('admin can see all tickets', function () {
     $admin = User::factory()->create()->assignRole('Admin');
-    $user  = User::factory()->create()->assignRole('Cliente');
-
-    $status   = Status::first();
-    $priority = Priority::first();
-    $category = Category::first();
+    $user = User::factory()->create()->assignRole('Cliente');
 
     $ticket = Ticket::factory()->create([
         'title' => 'Unique Admin Ticket Title',
         'created_by' => $user->id,
-        'status_id' => $status->id,
-        'priority_id' => $priority->id,
-        'category_id' => $category->id,
         'created_at' => now()->addMinute(),
     ]);
 
@@ -63,15 +50,8 @@ test('user cannot view ticket that belongs to another user', function () {
     $owner = User::factory()->create()->assignRole('Cliente');
     $other = User::factory()->create()->assignRole('Cliente');
 
-    $status   = Status::first();
-    $priority = Priority::first();
-    $category = Category::first();
-
     $ticket = Ticket::factory()->create([
-        'created_by'  => $owner->id,
-        'status_id'   => $status->id,
-        'priority_id' => $priority->id,
-        'category_id' => $category->id,
+        'created_by' => $owner->id,
     ]);
 
     $this->actingAs($other)->get(route('tickets.show', $ticket))
@@ -79,16 +59,10 @@ test('user cannot view ticket that belongs to another user', function () {
 });
 
 test('ticket owner can view their own ticket', function () {
-    $owner    = User::factory()->create()->assignRole('Cliente');
-    $status   = Status::first();
-    $priority = Priority::first();
-    $category = Category::first();
+    $owner = User::factory()->create()->assignRole('Cliente');
 
     $ticket = Ticket::factory()->create([
-        'created_by'  => $owner->id,
-        'status_id'   => $status->id,
-        'priority_id' => $priority->id,
-        'category_id' => $category->id,
+        'created_by' => $owner->id,
     ]);
 
     $this->actingAs($owner)->get(route('tickets.show', $ticket))
@@ -98,18 +72,15 @@ test('ticket owner can view their own ticket', function () {
 // --- Creación de Tickets ---
 
 test('ticket can be created with valid data via livewire', function () {
-    $user     = User::factory()->create()->assignRole('Cliente');
-    $status   = Status::first();
-    $priority = Priority::first();
-    $category = Category::first();
+    $user = User::factory()->create()->assignRole('Cliente');
 
     $this->actingAs($user);
 
     Livewire\Livewire::test(App\Livewire\TicketCreate::class)
         ->set('title', 'Equipo no enciende correctamente')
         ->set('description', 'El equipo no arranca luego de presionar el botón de encendido.')
-        ->set('priority_id', $priority->id)
-        ->set('category_id', $category->id)
+        ->set('priority', TicketPriority::Media->value)
+        ->set('category', TicketCategory::Correctivo->value)
         ->set('maintenance_type', 'Hardware')
         ->call('save')
         ->assertRedirect(route('tickets.index'));

@@ -1,15 +1,17 @@
 <?php
-use function Livewire\Volt\{state, on, computed};
-use App\Models\Status;
+
+use App\Enums\TicketStatus;
 use App\Models\User;
 use App\Models\Ticket;
 use App\Services\TicketService;
+use function Livewire\Volt\{state, on, computed};
 
 state(['ticket', 'newComment' => '', 'attachments' => []]);
 
 $addComment = function (TicketService $ticketService) {
-    if (empty($this->newComment))
-        return;
+    $this->validate([
+        'newComment' => ['required', 'string', 'min:3', 'max:5000'],
+    ]);
 
     $ticketService->addComment($this->ticket, $this->newComment, $this->attachments);
     $this->newComment = '';
@@ -17,8 +19,8 @@ $addComment = function (TicketService $ticketService) {
     $this->ticket->refresh();
 };
 
-$updateStatus = function ($statusId, TicketService $ticketService) {
-    $ticketService->updateStatus($this->ticket, $statusId);
+$updateStatus = function (string $statusValue, TicketService $ticketService) {
+    $ticketService->updateStatus($this->ticket, TicketStatus::from($statusValue));
     $this->ticket->refresh();
 };
 
@@ -27,8 +29,9 @@ $assignTo = function ($userId, TicketService $ticketService) {
     $this->ticket->refresh();
 };
 
-$statuses = computed(fn() => Status::all());
-$agents = computed(fn() => User::role('Agente')->get());
+$statuses = computed(fn () => TicketStatus::cases());
+$agents = computed(fn () => User::role('Agente')->get());
+$recentActivities = computed(fn () => $this->ticket->activities()->latest()->take(5)->get());
 
 ?>
 <div>
@@ -49,10 +52,8 @@ $agents = computed(fn() => User::role('Agente')->get());
             <div class="space-y-1">
                 <div class="flex items-center gap-3">
                     <flux:heading size="xl" level="1">#{{ $ticket->id }} - {{ $ticket->title }}</flux:heading>
-                    <flux:badge
-                        :color="match($ticket->status->name){'Abierto'=>'blue','En Progreso'=>'yellow','Cerrado'=>'green',default=>'zinc'}"
-                        size="sm">
-                        {{ $ticket->status->name }}
+                    <flux:badge :color="$ticket->status->color()" size="sm">
+                        {{ $ticket->status->label() }}
                     </flux:badge>
                 </div>
                 <flux:subheading>
@@ -65,10 +66,10 @@ $agents = computed(fn() => User::role('Agente')->get());
                 @role('Admin|Agente')
                 <flux:dropdown>
                     <flux:button variant="filled" icon="arrow-path" wire:loading.attr="disabled"
-                        wire:target="updateStatus">Cambiar Estado</flux:button>
+                        wire:target="updateStatus">{{ __('Cambiar Estado') }}</flux:button>
                     <flux:menu>
                         @foreach($this->statuses as $status)
-                            <flux:menu.item wire:click="updateStatus({{ $status->id }})">{{ $status->name }}
+                            <flux:menu.item wire:click="updateStatus('{{ $status->value }}')">{{ $status->label() }}
                             </flux:menu.item>
                         @endforeach
                     </flux:menu>
@@ -209,10 +210,8 @@ $agents = computed(fn() => User::role('Agente')->get());
                             <flux:text size="xs" class="text-zinc-500 uppercase font-bold">{{ __('Prioridad') }}
                             </flux:text>
                             <div class="mt-1">
-                                <flux:badge
-                                    :color="match($ticket->priority->name){'Alta'=>'red','Media'=>'yellow','Baja'=>'green',default=>'zinc'}"
-                                    variant="outline">
-                                    {{ $ticket->priority->name }}
+                                <flux:badge :color="$ticket->priority->color()" variant="outline">
+                                    {{ $ticket->priority->label() }}
                                 </flux:badge>
                             </div>
                         </div>
@@ -221,8 +220,8 @@ $agents = computed(fn() => User::role('Agente')->get());
                             <flux:text size="xs" class="text-zinc-500 uppercase font-bold">{{ __('Categoría') }}
                             </flux:text>
                             <div class="flex items-center gap-2 mt-1">
-                                <flux:icon name="tag" size="xs" class="text-zinc-400" />
-                                <flux:text>{{ $ticket->category->name }}</flux:text>
+                                <flux:icon :name="$ticket->category->icon()" size="xs" class="text-zinc-400" />
+                                <flux:text>{{ $ticket->category->label() }}</flux:text>
                             </div>
                         </div>
 
@@ -242,11 +241,11 @@ $agents = computed(fn() => User::role('Agente')->get());
                             <flux:text size="xs" class="text-zinc-500 uppercase font-bold">{{ __('Equipo') }}
                             </flux:text>
                             <flux:text class="block mt-1 font-medium">
-                                @if($ticket->device)
-                                    {{ $ticket->device->name }}
-                                    ({{ $ticket->device->serial_number ?? 'S/N' }})
+                                @if($ticket->equipment)
+                                    {{ $ticket->equipment->name }}
+                                    ({{ $ticket->equipment->serial_number ?? 'S/N' }})
                                 @else
-                                    {{ $ticket->equipment ?? __('No especificado') }}
+                                    {{ __('No especificado') }}
                                 @endif
                             </flux:text>
                         </div>
@@ -274,7 +273,7 @@ $agents = computed(fn() => User::role('Agente')->get());
                     <div x-show="expanded" x-collapse class="pt-6">
                         <div
                             class="space-y-4 relative before:absolute before:inset-0 before:ml-2.5 before:-translate-x-px before:h-full before:w-0.5 before:bg-zinc-800">
-                            @foreach($ticket->activities()->latest()->take(5)->get() as $activity)
+                            @foreach($this->recentActivities as $activity)
                                 <div class="relative flex items-start gap-4 pl-6">
                                     <div
                                         class="absolute left-0 size-5 rounded-full bg-zinc-900 border-2 border-zinc-800 flex items-center justify-center z-10">

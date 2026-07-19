@@ -2,31 +2,38 @@
 
 namespace App\Services;
 
-use App\Models\Ticket;
+use App\Enums\TicketStatus;
 use App\Models\Activity;
 use App\Models\Comment;
+use App\Models\Ticket;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class TicketService
 {
-    public function createTicket(array $data)
+    public function createTicket(array $data): Ticket
     {
         $ticket = Ticket::create($data);
 
         $this->logActivity($ticket, 'created', 'creó el ticket');
 
+        $this->invalidateCache($ticket);
+
         return $ticket;
     }
 
-    public function assignTicket(Ticket $ticket, $userId)
+    public function assignTicket(Ticket $ticket, int $userId): void
     {
         $ticket->update(['assigned_to' => $userId]);
-        
-        $user = \App\Models\User::find($userId);
+
+        $user = User::find($userId);
         $this->logActivity($ticket, 'assigned', "asignó el ticket a {$user->name}", ['assigned_to' => $userId]);
+
+        $this->invalidateCache($ticket);
     }
 
-    public function addComment(Ticket $ticket, $content, $attachments = [])
+    public function addComment(Ticket $ticket, string $content, array $attachments = []): Comment
     {
         $comment = $ticket->comments()->create([
             'user_id' => Auth::id(),
@@ -42,39 +49,44 @@ class TicketService
         return $comment;
     }
 
-    public function updateStatus(Ticket $ticket, $statusId)
+    public function updateStatus(Ticket $ticket, TicketStatus $newStatus): void
     {
-        $oldStatus = $ticket->status->name;
-        $ticket->update(['status_id' => $statusId]);
-        $ticket->load('status');
-        $newStatus = $ticket->status->name;
+        $oldStatus = $ticket->status->label();
+        $ticket->update(['status' => $newStatus]);
 
-        $this->logActivity($ticket, 'status_updated', "cambió el estado de {$oldStatus} a {$newStatus}", [
-            'old_status_id' => $ticket->getOriginal('status_id'),
-            'new_status_id' => $statusId
+        $this->logActivity($ticket, 'status_updated', "cambió el estado de {$oldStatus} a {$newStatus->label()}", [
+            'old_status' => $ticket->getOriginal('status'),
+            'new_status' => $newStatus->value,
         ]);
+
+        $this->invalidateCache($ticket);
     }
 
-    public function resolveTicket(Ticket $ticket)
+    public function resolveTicket(Ticket $ticket): void
     {
-        $resolvedStatus = \App\Models\Status::where('name', 'Cerrado')->first();
-
-        if (!$resolvedStatus) {
-            throw new \RuntimeException('El estado "Cerrado" no existe en la base de datos. Por favor ejecute los seeders.');
-        }
-
-        $this->updateStatus($ticket, $resolvedStatus->id);
+        $this->updateStatus($ticket, TicketStatus::Cerrado);
         $this->logActivity($ticket, 'resolved', 'resolvió el ticket');
     }
 
-    protected function logActivity(Ticket $ticket, string $type, string $description, array $properties = [])
+    public function logActivity(Ticket $ticket, string $type, string $description, array $properties = []): Activity
     {
-        Activity::create([
+        return Activity::create([
             'user_id' => Auth::id(),
             'ticket_id' => $ticket->id,
             'type' => $type,
             'description' => $description,
             'properties' => $properties,
         ]);
+    }
+
+    protected function invalidateCache(Ticket $ticket): void
+    {
+        Cache::forget("dashboard:{$ticket->created_by}");
+        Cache::forget("sidebar:{$ticket->created_by}");
+
+        if ($ticket->assigned_to) {
+            Cache::forget("dashboard:{$ticket->assigned_to}");
+            Cache::forget("sidebar:{$ticket->assigned_to}");
+        }
     }
 }

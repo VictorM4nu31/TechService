@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreClientRequest;
+use App\Http\Requests\UpdateClientRequest;
 use App\Models\Client;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class ClientController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $clients = Client::withCount('equipment')
             ->latest()
@@ -16,59 +19,47 @@ class ClientController extends Controller
         return view('clients.index', compact('clients'));
     }
 
-    public function create()
+    public function create(): View
     {
         return view('clients.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreClientRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name'          => 'required|string|max:255',
-            'contact_email' => 'nullable|email|max:255',
-            'contact_phone' => 'nullable|string|max:50',
-            'address'       => 'nullable|string|max:500',
-            'tax_id'        => 'nullable|string|max:50|unique:clients,tax_id',
-        ]);
-
-        Client::create($validated);
+        Client::create($request->validated());
 
         session()->flash('status', __('Cliente registrado con éxito.'));
+
         return redirect()->route('clients.index');
     }
 
-    public function show(Client $client)
+    public function show(Client $client): View
     {
         $client->load(['equipment.owner', 'equipment.tickets']);
+
         return view('clients.show', compact('client'));
     }
 
-    public function edit(Client $client)
+    public function edit(Client $client): View
     {
         return view('clients.edit', compact('client'));
     }
 
-    public function update(Request $request, Client $client)
+    public function update(UpdateClientRequest $request, Client $client): RedirectResponse
     {
-        $validated = $request->validate([
-            'name'          => 'required|string|max:255',
-            'contact_email' => 'nullable|email|max:255',
-            'contact_phone' => 'nullable|string|max:50',
-            'address'       => 'nullable|string|max:500',
-            'tax_id'        => 'nullable|string|max:50|unique:clients,tax_id,' . $client->id,
-        ]);
-
-        $client->update($validated);
+        $client->update($request->validated());
 
         session()->flash('status', __('Cliente actualizado con éxito.'));
+
         return redirect()->route('clients.show', $client);
     }
 
-    public function destroy(Client $client)
+    public function destroy(Client $client): RedirectResponse
     {
         $client->delete();
 
         session()->flash('status', __('Cliente eliminado.'));
+
         return redirect()->route('clients.index');
     }
 }

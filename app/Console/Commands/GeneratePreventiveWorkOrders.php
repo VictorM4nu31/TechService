@@ -2,25 +2,21 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
+use App\Enums\TicketCategory;
+use App\Enums\TicketPriority;
+use App\Enums\TicketStatus;
 use App\Models\MaintenanceSchedule;
 use App\Models\Ticket;
-use App\Models\Status;
-use App\Models\Priority;
-use App\Models\Category;
 use App\Models\User;
+use Illuminate\Console\Command;
 
 class GeneratePreventiveWorkOrders extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'app:generate-preventive-maintenance';
+
     protected $description = 'Generate preventive maintenance work orders (tickets) based on active schedules';
 
-    public function handle()
+    public function handle(): int
     {
         $today = now();
         $schedules = MaintenanceSchedule::where('is_active', true)
@@ -32,7 +28,8 @@ class GeneratePreventiveWorkOrders extends Command
 
         if ($schedules->isEmpty()) {
             $this->info('No maintenance schedules due for generation.');
-            return 0;
+
+            return Command::SUCCESS;
         }
 
         foreach ($schedules as $schedule) {
@@ -40,25 +37,21 @@ class GeneratePreventiveWorkOrders extends Command
         }
 
         $this->info("Generated {$schedules->count()} preventive maintenance work orders.");
-        return 1;
+
+        return Command::SUCCESS;
     }
 
-    protected function generateWorkOrder(MaintenanceSchedule $schedule)
+    protected function generateWorkOrder(MaintenanceSchedule $schedule): void
     {
-        $status = Status::where('name', 'Abierto')->orWhere('name', 'Open')->first();
-        $priority = Priority::where('name', 'Media')->orWhere('name', 'Medium')->first();
-        $category = Category::where('name', 'Mantenimiento Preventivo')->orWhere('name', 'Preventive')->first() 
-                    ?? Category::first();
-
         Ticket::create([
             'title' => "Mantenimiento Preventivo: {$schedule->name} - {$schedule->equipment->name}",
             'description' => $schedule->description ?? "Tarea de mantenimiento programada para el equipo {$schedule->equipment->name}.",
-            'status_id' => $status?->id,
-            'priority_id' => $priority?->id,
-            'category_id' => $category?->id,
+            'status' => TicketStatus::Abierto,
+            'priority' => TicketPriority::Media,
+            'category' => TicketCategory::Preventivo,
             'equipment_id' => $schedule->equipment_id,
-            'due_date' => now()->addDays(2), // Give 2 days to complete
-            'created_by' => User::whereHas('roles', fn($q) => $q->where('name', 'Admin'))->first()?->id,
+            'due_date' => now()->addDays(2),
+            'created_by' => User::whereHas('roles', fn ($q) => $q->where('name', 'Admin'))->first()?->id,
             'maintenance_type' => 'Preventivo',
         ]);
 

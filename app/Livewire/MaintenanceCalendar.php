@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Ticket;
 use Carbon\Carbon;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class MaintenanceCalendar extends Component
@@ -16,14 +17,14 @@ class MaintenanceCalendar extends Component
 
     public $events = [];
 
-    public function mount()
+    public function mount(): void
     {
         $this->month = now()->month;
         $this->year = now()->year;
         $this->calculateCalendar();
     }
 
-    public function previousMonth()
+    public function previousMonth(): void
     {
         $date = Carbon::createFromDate($this->year, $this->month, 1)->subMonth();
         $this->month = $date->month;
@@ -31,7 +32,7 @@ class MaintenanceCalendar extends Component
         $this->calculateCalendar();
     }
 
-    public function nextMonth()
+    public function nextMonth(): void
     {
         $date = Carbon::createFromDate($this->year, $this->month, 1)->addMonth();
         $this->month = $date->month;
@@ -39,7 +40,7 @@ class MaintenanceCalendar extends Component
         $this->calculateCalendar();
     }
 
-    public function calculateCalendar()
+    public function calculateCalendar(): void
     {
         $date = Carbon::createFromDate($this->year, $this->month, 1);
         $daysInMonth = $date->daysInMonth;
@@ -47,12 +48,10 @@ class MaintenanceCalendar extends Component
 
         $this->daysInMonth = [];
 
-        // Fill previous month days
         for ($i = 0; $i < $startDayOfWeek; $i++) {
             $this->daysInMonth[] = null;
         }
 
-        // Fill current month days
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $this->daysInMonth[] = $day;
         }
@@ -60,19 +59,18 @@ class MaintenanceCalendar extends Component
         $this->loadEvents();
     }
 
-    public function loadEvents()
+    public function loadEvents(): void
     {
         $startDate = Carbon::createFromDate($this->year, $this->month, 1)->startOfMonth();
         $endDate = $startDate->copy()->endOfMonth();
 
         $query = Ticket::whereBetween('due_date', [$startDate, $endDate]);
 
-        // Security: Clients only see their own tickets in the calendar
         if (auth()->user()->hasRole('Cliente')) {
             $query->where('created_by', auth()->id());
         }
 
-        $this->events = $query->with(['status', 'equipment'])
+        $this->events = $query->with(['equipment'])
             ->get()
             ->groupBy(function ($ticket) {
                 return $ticket->due_date->format('j');
@@ -80,7 +78,7 @@ class MaintenanceCalendar extends Component
             ->toArray();
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.maintenance-calendar', [
             'monthName' => Carbon::createFromDate($this->year, $this->month, 1)->translatedFormat('F'),

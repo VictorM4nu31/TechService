@@ -37,8 +37,6 @@
                                 </flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:input wire:model="equipment" label="{{ __('Equipo Detalle Textual (Opcional)') }}"
-                            placeholder="{{ __('Ej: PC-001, Impresora HP...') }}" />
                         <flux:input wire:model="location" label="{{ __('Ubicación *') }}"
                             placeholder="{{ __('Ej: Piso 3, Oficina 301') }}" />
                     </div>
@@ -97,15 +95,15 @@
                     <flux:heading size="md">{{ __('Prioridad') }}</flux:heading>
                     <div class="flex flex-wrap gap-2">
                         @foreach ($priorities as $priority)
-                                                <button type="button" wire:click="$set('priority_id', {{ $priority->id }})" class="px-4 py-2 rounded-lg text-xs font-bold transition-all border-2 {{ $priority_id == $priority->id ? 'scale-105 shadow-lg' : 'opacity-50' }} 
-                                                                                                                                                                                                                                {{ match ($priority->name) {
-                                'Alta' => 'bg-red-500/10 text-red-500 border-red-500',
-                                'Media' => 'bg-yellow-500/10 text-yellow-500 border-yellow-500',
-                                'Baja' => 'bg-green-500/10 text-green-500 border-green-500',
-                                default => 'bg-zinc-500/10 text-zinc-500 border-zinc-500',
-                            } }}">
-                                                    {{ strtoupper($priority->name) }}
-                                                </button>
+                            <button type="button" wire:click="$set('priority', '{{ $priority->value }}')"
+                                class="px-4 py-2 rounded-lg text-xs font-bold transition-all border-2 {{ $priority->value === $priority->value ? 'scale-105 shadow-lg' : 'opacity-50' }}
+                                {{ match ($priority) {
+                                    \App\Enums\TicketPriority::Alta => 'bg-red-500/10 text-red-500 border-red-500',
+                                    \App\Enums\TicketPriority::Media => 'bg-yellow-500/10 text-yellow-500 border-yellow-500',
+                                    \App\Enums\TicketPriority::Baja => 'bg-green-500/10 text-green-500 border-green-500',
+                                } }}">
+                                {{ strtoupper($priority->label()) }}
+                            </button>
                         @endforeach
                     </div>
                 </flux:card>
@@ -115,20 +113,15 @@
                     <flux:heading size="md">{{ __('Categoría') }}</flux:heading>
                     <div class="grid gap-3">
                         @foreach ($categories as $category)
-                            <button type="button" wire:click="$set('category_id', {{ $category->id }})"
-                                class="flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left {{ $category_id == $category->id ? 'bg-blue-500/10 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-transparent border-zinc-800 hover:border-zinc-700' }}">
+                            <button type="button" wire:click="$set('category', '{{ $category->value }}')"
+                                class="flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left {{ $category->value === $category->value ? 'bg-blue-500/10 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-transparent border-zinc-800 hover:border-zinc-700' }}">
                                 <div
-                                    class="p-2 rounded-lg bg-zinc-800 {{ $category_id == $category->id ? 'text-blue-500' : 'text-zinc-500' }}">
-                                    <flux:icon :name="match($category->name) {
-                                                                        'Preventivo' => 'shield-check',
-                                                                        'Correctivo' => 'wrench-screwdriver',
-                                                                        'Emergencia' => 'exclamation-triangle',
-                                                                        default => 'tag',
-                                                                    }" size="sm" />
+                                    class="p-2 rounded-lg bg-zinc-800 {{ $category->value === $category->value ? 'text-blue-500' : 'text-zinc-500' }}">
+                                    <flux:icon :name="$category->icon()" size="sm" />
                                 </div>
                                 <flux:text
-                                    class="font-medium {{ $category_id == $category->id ? 'text-zinc-100' : 'text-zinc-400' }}">
-                                    {{ $category->name }}
+                                    class="font-medium {{ $category->value === $category->value ? 'text-zinc-100' : 'text-zinc-400' }}">
+                                    {{ $category->label() }}
                                 </flux:text>
                             </button>
                         @endforeach

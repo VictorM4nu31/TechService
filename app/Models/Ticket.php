@@ -2,36 +2,45 @@
 
 namespace App\Models;
 
+use App\Enums\TicketCategory;
+use App\Enums\TicketPriority;
+use App\Enums\TicketStatus;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Ticket extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'title',
         'description',
-        'status_id',
-        'priority_id',
-        'category_id',
+        'status',
+        'priority',
+        'category',
         'assigned_to',
         'created_by',
         'team_id',
         'due_date',
-        'equipment',
         'equipment_id',
         'location',
         'maintenance_type',
     ];
 
-    protected $casts = [
-        'due_date' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'due_date' => 'datetime',
+            'status' => TicketStatus::class,
+            'priority' => TicketPriority::class,
+            'category' => TicketCategory::class,
+        ];
+    }
 
     public function creator(): BelongsTo
     {
@@ -41,21 +50,6 @@ class Ticket extends Model implements HasMedia
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
-    }
-
-    public function status(): BelongsTo
-    {
-        return $this->belongsTo(Status::class);
-    }
-
-    public function priority(): BelongsTo
-    {
-        return $this->belongsTo(Priority::class);
-    }
-
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(Category::class);
     }
 
     public function team(): BelongsTo

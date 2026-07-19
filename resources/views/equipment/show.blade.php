@@ -57,21 +57,14 @@
                                 <flux:text size="xs" class="text-zinc-500">{{ $ticket->created_at->format('d/m/Y') }}
                                 </flux:text>
                             </div>
-                            <flux:badge size="sm" :color="match($ticket->status->name ?? '') {
-                                                'Abierto' => 'blue',
-                                                'En Progreso' => 'yellow',
-                                                'Cerrado' => 'green',
-                                    <flux:badge size=" sm" :color="match($ticket->status->name ?? '') {
-                                                'Abierto' => 'blue',
-                                                'En Progreso' => 'yellow',
-                                                'Cerrado' => 'green',
-                                                default => 'zinc',
-                                            }">
-                                {{ $ticket->status->name ?? '—' }}
-                            </flux:badge>
-                            <flux:text size="sm" class="ml-2 text-zinc-400">
-                                [{{ $ticket->category->name ?? 'N/A' }}]
-                            </flux:text>
+                            <div class="flex items-center gap-2">
+                                <flux:badge size="sm" :color="$ticket->status->color()">
+                                    {{ $ticket->status->label() }}
+                                </flux:badge>
+                                <flux:text size="sm" class="text-zinc-400">
+                                    [{{ $ticket->category->label() }}]
+                                </flux:text>
+                            </div>
                         </a>
                     @empty
                         <div class="text-center py-8 text-zinc-500">

@@ -32,20 +32,15 @@
                                 {{ $ticket->title }}
                             </flux:table.cell>
                             <flux:table.cell>
-                                <flux:badge :color="match($ticket->status->name) {
-                                                            'Abierto' => 'blue',
-                                                            'En Progreso' => 'yellow',
-                                                            'Cerrado' => 'green',
-                                                            default => 'zinc',
-                                                        }">{{ $ticket->status->name }}</flux:badge>
+                                <flux:badge :color="$ticket->status->color()">{{ $ticket->status->label() }}</flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge size="sm" variant="outline" x-data
-                                    x-tooltip="'{{ __('Prioridad Nivel: :level', ['level' => $ticket->priority->name]) }}'">
-                                    {{ $ticket->priority->name }}
+                                    x-tooltip="'{{ __('Prioridad: :level', ['level' => $ticket->priority->label()]) }}'">
+                                    {{ $ticket->priority->label() }}
                                 </flux:badge>
                             </flux:table.cell>
-                            <flux:table.cell>{{ $ticket->category->name }}</flux:table.cell>
+                            <flux:table.cell>{{ $ticket->category->label() }}</flux:table.cell>
                             <flux:table.cell>{{ $ticket->creator->name }}</flux:table.cell>
                             <flux:table.cell>{{ $ticket->assignee?->name ?? __('Sin asignar') }}</flux:table.cell>
                             <flux:table.cell>

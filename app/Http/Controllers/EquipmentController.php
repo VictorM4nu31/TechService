@@ -2,18 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreEquipmentRequest;
+use App\Http\Requests\UpdateEquipmentRequest;
 use App\Models\Equipment;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class EquipmentController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $user = Auth::user();
 
         $equipment = Equipment::query()
-            ->when(!$user->hasRole('Admin'), fn($q) => $q->where('user_id', $user->id))
+            ->when(! $user->hasRole('Admin'), fn ($q) => $q->where('user_id', $user->id))
             ->with('owner')
             ->latest()
             ->paginate(15);
@@ -21,75 +24,56 @@ class EquipmentController extends Controller
         return view('equipment.index', compact('equipment'));
     }
 
-    public function create()
+    public function create(): View
     {
         return view('equipment.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreEquipmentRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name'          => 'required|string|max:255',
-            'brand'         => 'nullable|string|max:100',
-            'model'         => 'nullable|string|max:100',
-            'serial_number' => 'nullable|string|max:150',
-            'type'          => 'required|string|in:Computadora,Impresora,Red,Servidor,Teléfono,Otro',
-            'client_id'     => 'nullable|exists:clients,id',
-        ]);
-
+        $validated = $request->validated();
         $validated['user_id'] = Auth::id();
 
         Equipment::create($validated);
 
         session()->flash('status', __('Equipo registrado con éxito.'));
+
         return redirect()->route('equipment.index');
     }
 
-    public function show(Equipment $equipment)
+    public function show(Equipment $equipment): View
     {
-        $this->authorizeAccess($equipment);
+        $this->authorize('view', $equipment);
         $equipment->load(['tickets.status', 'tickets.priority', 'owner', 'client', 'tickets.category']);
+
         return view('equipment.show', compact('equipment'));
     }
 
-    public function edit(Equipment $equipment)
+    public function edit(Equipment $equipment): View
     {
-        $this->authorizeAccess($equipment);
+        $this->authorize('update', $equipment);
+
         return view('equipment.edit', compact('equipment'));
     }
 
-    public function update(Request $request, Equipment $equipment)
+    public function update(UpdateEquipmentRequest $request, Equipment $equipment): RedirectResponse
     {
-        $this->authorizeAccess($equipment);
+        $this->authorize('update', $equipment);
 
-        $validated = $request->validate([
-            'name'          => 'required|string|max:255',
-            'brand'         => 'nullable|string|max:100',
-            'model'         => 'nullable|string|max:100',
-            'serial_number' => 'nullable|string|max:150',
-            'type'          => 'required|string|in:Computadora,Impresora,Red,Servidor,Teléfono,Otro',
-        ]);
-
-        $equipment->update($validated);
+        $equipment->update($request->validated());
 
         session()->flash('status', __('Equipo actualizado con éxito.'));
+
         return redirect()->route('equipment.show', $equipment);
     }
 
-    public function destroy(Equipment $equipment)
+    public function destroy(Equipment $equipment): RedirectResponse
     {
-        $this->authorizeAccess($equipment);
+        $this->authorize('delete', $equipment);
         $equipment->delete();
 
         session()->flash('status', __('Equipo eliminado.'));
-        return redirect()->route('equipment.index');
-    }
 
-    private function authorizeAccess(Equipment $equipment): void
-    {
-        $user = Auth::user();
-        if (!$user->hasRole('Admin') && $equipment->user_id !== $user->id) {
-            abort(403, __('No tienes permiso para acceder a este equipo.'));
-        }
+        return redirect()->route('equipment.index');
     }
 }
