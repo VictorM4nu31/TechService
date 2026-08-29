@@ -9,6 +9,8 @@ use function Livewire\Volt\{state, on, computed};
 state(['ticket', 'newComment' => '', 'attachments' => []]);
 
 $addComment = function (TicketService $ticketService) {
+    $this->authorize('view', $this->ticket);
+
     $this->validate([
         'newComment' => ['required', 'string', 'min:3', 'max:5000'],
     ]);
@@ -20,12 +22,21 @@ $addComment = function (TicketService $ticketService) {
 };
 
 $updateStatus = function (string $statusValue, TicketService $ticketService) {
-    $ticketService->updateStatus($this->ticket, TicketStatus::from($statusValue));
+    abort_unless(auth()->user()->hasAnyRole(['Admin', 'Agente']), 403);
+
+    $status = TicketStatus::tryFrom($statusValue);
+    abort_unless($status !== null, 422);
+
+    $ticketService->updateStatus($this->ticket, $status);
     $this->ticket->refresh();
 };
 
 $assignTo = function ($userId, TicketService $ticketService) {
-    $ticketService->assignTicket($this->ticket, $userId);
+    abort_unless(auth()->user()->hasAnyRole(['Admin', 'Agente']), 403);
+
+    abort_unless(is_numeric($userId), 422);
+
+    $ticketService->assignTicket($this->ticket, (int) $userId);
     $this->ticket->refresh();
 };
 

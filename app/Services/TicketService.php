@@ -25,9 +25,11 @@ class TicketService
 
     public function assignTicket(Ticket $ticket, int $userId): void
     {
+        $user = User::find($userId);
+        abort_unless($user !== null, 422);
+
         $ticket->update(['assigned_to' => $userId]);
 
-        $user = User::find($userId);
         $this->logActivity($ticket, 'assigned', "asignó el ticket a {$user->name}", ['assigned_to' => $userId]);
 
         $this->invalidateCache($ticket);
