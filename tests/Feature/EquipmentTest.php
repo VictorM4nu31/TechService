@@ -65,3 +65,16 @@ test('user only sees their own equipment in index', function () {
         ->assertSee('Equipo Propio')
         ->assertDontSee('Equipo Ajeno');
 });
+
+test('equipment index shows the ticket count without errors', function () {
+    $owner = User::factory()->create()->assignRole('Cliente');
+
+    $equipment = Equipment::factory()->create(['user_id' => $owner->id, 'name' => 'Equipo con Tickets']);
+    $ticket = \App\Models\Ticket::factory()->create(['equipment_id' => $equipment->id]);
+
+    $response = $this->actingAs($owner)->get(route('equipment.index'));
+
+    $response->assertOk()
+        ->assertSee('Equipo con Tickets')
+        ->assertSee($equipment->serial_number);
+});

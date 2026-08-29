@@ -56,8 +56,7 @@
                             </flux:table.cell>
                             @endrole
                             <flux:table.cell>
-                                <flux:badge color="blue" size="sm">{{ $item->tickets_count ?? $item->tickets()->count() }}
-                                </flux:badge>
+                                <flux:badge color="blue" size="sm">{{ $item->tickets_count }}</flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>
                                 <div class="flex items-center gap-2">
