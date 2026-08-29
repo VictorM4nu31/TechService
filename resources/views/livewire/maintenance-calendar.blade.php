@@ -6,8 +6,7 @@
         </div>
         <div class="flex items-center gap-2">
             <flux:button icon="chevron-left" variant="ghost" wire:click="previousMonth" />
-            <flux:button variant="outline"
-                wire:click="$set('month', {{ now()->month }}); $set('year', {{ now()->year }}); calculateCalendar()">
+            <flux:button variant="outline" wire:click="goToToday">
                 {{ __('Hoy') }}
             </flux:button>
             <flux:button icon="chevron-right" variant="ghost" wire:click="nextMonth" />
@@ -40,9 +39,9 @@
                             @if(isset($events[$day]))
                                 @foreach($events[$day] as $event)
                                         <a href="{{ route('tickets.show', $event['id']) }}" wire:navigate class="block px-1.5 py-0.5 text-[10px] rounded border border-zinc-700 hover:bg-zinc-800 transition-colors truncate
-                                                                  {{ match ($event['maintenance_type'] ?? '') {
+                                                                  {{ match ($event['category'] ?? '') {
                                         'Preventivo' => 'bg-green-500/10 text-green-400 border-green-500/20',
-                                        'Correctivo' => 'bg-red-500/10 text-red-400 border-red-500/20',
+                                        'Emergencia' => 'bg-red-500/10 text-red-400 border-red-500/20',
                                         default => 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                                     } }}">
                                             {{ $event['title'] }}
@@ -63,7 +62,7 @@
         </div>
         <div class="flex items-center gap-1.5 text-zinc-400">
             <span class="w-2.5 h-2.5 rounded bg-red-500/20 border border-red-500/30"></span>
-            {{ __('Correctivo') }}
+            {{ __('Emergencia') }}
         </div>
         <div class="flex items-center gap-1.5 text-zinc-400">
             <span class="w-2.5 h-2.5 rounded bg-blue-500/20 border border-blue-500/30"></span>

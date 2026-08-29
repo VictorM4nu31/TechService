@@ -62,3 +62,24 @@ test('it does not generate work orders for future schedules', function () {
         'maintenance_type' => 'Preventivo',
     ]);
 });
+
+test('el calendario renderiza la leyenda de mantenimiento', function () {
+    $user = User::factory()->create()->assignRole('Cliente');
+    $this->actingAs($user);
+
+    Livewire\Livewire::test(\App\Livewire\MaintenanceCalendar::class)
+        ->assertOk()
+        ->assertSee('Preventivo')
+        ->assertSee('Emergencia');
+});
+
+test('el boton hoy vuelve al mes y anio actuales', function () {
+    $user = User::factory()->create()->assignRole('Cliente');
+    $this->actingAs($user);
+
+    Livewire\Livewire::test(\App\Livewire\MaintenanceCalendar::class)
+        ->call('nextMonth')
+        ->call('goToToday')
+        ->assertSet('month', now()->month)
+        ->assertSet('year', now()->year);
+});
