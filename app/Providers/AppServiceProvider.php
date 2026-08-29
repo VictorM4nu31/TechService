@@ -45,8 +45,7 @@ class AppServiceProvider extends ServiceProvider
                 $cacheKey = "sidebar:{$user->id}";
 
                 $sidebarStats = Cache::remember($cacheKey, 60, function () use ($user) {
-                    $isStaff = $user->hasAnyRole(['Admin', 'Agente']);
-                    $ticketQuery = Ticket::query()->when(! $isStaff, fn ($q) => $q->where('created_by', $user->id));
+                    $ticketQuery = Ticket::query()->visibleTo($user);
 
                     return [
                         'total' => (clone $ticketQuery)->count(),
