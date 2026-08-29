@@ -1,11 +1,12 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/livewire-starter-kit",
+    "name": "techservice/techservice",
     "type": "project",
-    "description": "The official Laravel starter kit for Livewire.",
+    "description": "Sistema de gestion de tickets y mantenimiento de equipos de computo construido con Laravel 12, Livewire 4 y Flux UI.",
     "keywords": [
         "laravel",
-        "framework"
+        "tickets",
+        "cmms"
     ],
     "license": "MIT",
     "require": {
