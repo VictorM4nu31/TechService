@@ -64,11 +64,7 @@ class MaintenanceCalendar extends Component
         $startDate = Carbon::createFromDate($this->year, $this->month, 1)->startOfMonth();
         $endDate = $startDate->copy()->endOfMonth();
 
-        $query = Ticket::whereBetween('due_date', [$startDate, $endDate]);
-
-        if (auth()->user()->hasRole('Cliente')) {
-            $query->where('created_by', auth()->id());
-        }
+        $query = Ticket::whereBetween('due_date', [$startDate, $endDate])->visibleTo(auth()->user());
 
         $this->events = $query->with(['equipment'])
             ->get()

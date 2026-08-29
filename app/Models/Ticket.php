@@ -6,6 +6,7 @@ use App\Enums\TicketCategory;
 use App\Enums\TicketPriority;
 use App\Enums\TicketStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -70,5 +71,13 @@ class Ticket extends Model implements HasMedia
     public function activities(): HasMany
     {
         return $this->hasMany(Activity::class);
+    }
+
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        return $query->when(
+            ! $user->hasAnyRole(['Admin', 'Agente']),
+            fn (Builder $q) => $q->where('created_by', $user->id),
+        );
     }
 }

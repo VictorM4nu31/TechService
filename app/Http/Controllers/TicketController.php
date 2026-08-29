@@ -14,7 +14,7 @@ class TicketController extends Controller
         $tickets = Ticket::query()
             ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->when($request->category, fn ($q) => $q->where('category', $request->category))
-            ->when(! auth()->user()->hasAnyRole(['Admin', 'Agente']), fn ($q) => $q->where('created_by', auth()->id()))
+            ->visibleTo(auth()->user())
             ->with(['creator', 'assignee'])
             ->latest()
             ->paginate(15);

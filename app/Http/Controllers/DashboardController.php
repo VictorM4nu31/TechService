@@ -14,35 +14,31 @@ class DashboardController extends Controller
     public function index(): View
     {
         $user = Auth::user();
-        $isStaff = $user->hasAnyRole(['Admin', 'Agente']);
         $cacheKey = "dashboard:{$user->id}";
 
-        $data = cache()->remember($cacheKey, 60, function () use ($user, $isStaff) {
+        $data = cache()->remember($cacheKey, 60, function () use ($user) {
             $stats = [
-                'total' => Ticket::when(! $isStaff, fn ($q) => $q->where('created_by', $user->id))->count(),
-                'open' => Ticket::where('status', TicketStatus::Abierto)
-                    ->when(! $isStaff, fn ($q) => $q->where('created_by', $user->id))->count(),
-                'in_progress' => Ticket::where('status', TicketStatus::EnProgreso)
-                    ->when(! $isStaff, fn ($q) => $q->where('created_by', $user->id))->count(),
-                'resolved' => Ticket::where('status', TicketStatus::Cerrado)
-                    ->when(! $isStaff, fn ($q) => $q->where('created_by', $user->id))->count(),
+                'total' => Ticket::visibleTo($user)->count(),
+                'open' => Ticket::visibleTo($user)->where('status', TicketStatus::Abierto)->count(),
+                'in_progress' => Ticket::visibleTo($user)->where('status', TicketStatus::EnProgreso)->count(),
+                'resolved' => Ticket::visibleTo($user)->where('status', TicketStatus::Cerrado)->count(),
             ];
 
-            $criticalTickets = Ticket::where('priority', TicketPriority::Alta)
+            $criticalTickets = Ticket::visibleTo($user)
+                ->where('priority', TicketPriority::Alta)
                 ->where('status', '!=', TicketStatus::Cerrado)
-                ->when(! $isStaff, fn ($q) => $q->where('created_by', $user->id))
                 ->latest()->take(3)->get();
 
-            $recentTickets = Ticket::when(! $isStaff, fn ($q) => $q->where('created_by', $user->id))
+            $recentTickets = Ticket::visibleTo($user)
                 ->latest()->take(5)->get();
 
-            $categories = Ticket::selectRaw('category, count(*) as tickets_count')
-                ->when(! $isStaff, fn ($q) => $q->where('created_by', $user->id))
+            $categories = Ticket::visibleTo($user)
+                ->selectRaw('category, count(*) as tickets_count')
                 ->groupBy('category')
                 ->get();
 
             $activities = Activity::with(['user', 'ticket'])
-                ->when(! $isStaff, fn ($q) => $q
+                ->when(! $user->hasAnyRole(['Admin', 'Agente']), fn ($q) => $q
                     ->whereHas('ticket', fn ($sq) => $sq->where('created_by', $user->id))
                     ->orWhere('user_id', $user->id))
                 ->latest()->take(10)->get();
