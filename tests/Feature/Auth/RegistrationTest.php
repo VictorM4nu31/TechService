@@ -1,5 +1,7 @@
 <?php
 
+use Database\Seeders\RoleAndPermissionSeeder;
+
 test('registration screen can be rendered', function () {
     $response = $this->get(route('register'));
 
@@ -7,6 +9,8 @@ test('registration screen can be rendered', function () {
 });
 
 test('new users can register', function () {
+    $this->seed(RoleAndPermissionSeeder::class);
+
     $response = $this->post(route('register.store'), [
         'name' => 'John Doe',
         'email' => 'test@example.com',
@@ -18,4 +22,6 @@ test('new users can register', function () {
         ->assertRedirect(route('dashboard', absolute: false));
 
     $this->assertAuthenticated();
+
+    $this->assertTrue(auth()->user()->hasRole('Cliente'));
 });
