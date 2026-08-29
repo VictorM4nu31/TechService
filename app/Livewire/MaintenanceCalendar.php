@@ -40,6 +40,13 @@ class MaintenanceCalendar extends Component
         $this->calculateCalendar();
     }
 
+    public function goToToday(): void
+    {
+        $this->month = now()->month;
+        $this->year = now()->year;
+        $this->calculateCalendar();
+    }
+
     public function calculateCalendar(): void
     {
         $date = Carbon::createFromDate($this->year, $this->month, 1);

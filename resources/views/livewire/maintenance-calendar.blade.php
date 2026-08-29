@@ -6,8 +6,7 @@
         </div>
         <div class="flex items-center gap-2">
             <flux:button icon="chevron-left" variant="ghost" wire:click="previousMonth" />
-            <flux:button variant="outline"
-                wire:click="$set('month', {{ now()->month }}); $set('year', {{ now()->year }}); calculateCalendar()">
+            <flux:button variant="outline" wire:click="goToToday">
                 {{ __('Hoy') }}
             </flux:button>
             <flux:button icon="chevron-right" variant="ghost" wire:click="nextMonth" />
