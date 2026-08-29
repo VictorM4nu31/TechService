@@ -17,6 +17,7 @@ class EquipmentController extends Controller
 
         $equipment = Equipment::query()
             ->when(! $user->hasRole('Admin'), fn ($q) => $q->where('user_id', $user->id))
+            ->withCount('tickets')
             ->with('owner')
             ->latest()
             ->paginate(15);
