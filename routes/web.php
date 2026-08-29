@@ -6,7 +6,7 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::middleware(['auth', 'verified', 'throttle:60,1'])->group(function () {
+Route::middleware(['auth', 'throttle:60,1'])->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('tickets', [\App\Http\Controllers\TicketController::class, 'index'])->name('tickets.index');
