@@ -25,27 +25,27 @@
                 <div class="flex items-center justify-between">
                     <flux:text size="sm" class="font-medium text-zinc-400">{{ __('Tickets Creados vs Resueltos') }}</flux:text>
                 </div>
-                <div class="h-48 w-full relative">
-                    <svg viewBox="0 0 400 200" class="w-full h-full">
-                        <path d="M0,150 Q100,50 200,100 T400,80" fill="none" stroke="#3b82f6" stroke-width="3" />
-                        <path d="M0,160 Q100,120 200,140 T400,120" fill="none" stroke="#10b981" stroke-width="3" />
-                        <path d="M0,150 Q100,50 200,100 T400,80 L400,200 L0,200 Z" fill="url(#blue-grad)" opacity="0.1" />
-                    </svg>
-                    <defs>
-                        <linearGradient id="blue-grad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#3b82f6" />
-                            <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
-                        </linearGradient>
-                    </defs>
-                </div>
-                <div class="flex gap-4 mt-auto">
-                    <div class="flex items-center gap-2">
-                        <div class="size-2 rounded-full bg-blue-500"></div>
-                        <flux:text size="xs">{{ __('Creados') }} ({{ $stats['total'] }})</flux:text>
+                @php
+                    $maxCount = max($stats['total'], $stats['resolved'], 1);
+                @endphp
+                <div class="flex flex-col justify-end gap-5 h-48 w-full">
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs mb-1">
+                            <flux:text size="xs">{{ __('Creados') }}</flux:text>
+                            <flux:text size="xs" class="font-bold">{{ $stats['total'] }}</flux:text>
+                        </div>
+                        <div class="h-3 w-full bg-zinc-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-500" style="width: {{ ($stats['total'] / $maxCount) * 100 }}%"></div>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <div class="size-2 rounded-full bg-green-500"></div>
-                        <flux:text size="xs">{{ __('Resueltos') }} ({{ $stats['resolved'] }})</flux:text>
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs mb-1">
+                            <flux:text size="xs">{{ __('Resueltos') }}</flux:text>
+                            <flux:text size="xs" class="font-bold">{{ $stats['resolved'] }}</flux:text>
+                        </div>
+                        <div class="h-3 w-full bg-zinc-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-green-500" style="width: {{ ($stats['resolved'] / $maxCount) * 100 }}%"></div>
+                        </div>
                     </div>
                 </div>
             </flux:card>
@@ -179,14 +179,14 @@
                             <div class="flex size-10 items-center justify-center rounded-full bg-zinc-900 ring-4 ring-zinc-900 z-10">
                                 @php
                                     $actConfig = match($activity->type) {
-                                        'created' => ['icon' => 'plus-circle', 'color' => 'blue'],
-                                        'assigned' => ['icon' => 'user-plus', 'color' => 'purple'],
-                                        'commented' => ['icon' => 'chat-bubble-left-ellipsis', 'color' => 'gray'],
-                                        'status_updated', 'resolved' => ['icon' => 'check-circle', 'color' => 'green'],
-                                        default => ['icon' => 'information-circle', 'color' => 'zinc'],
+                                        'created' => ['icon' => 'plus-circle', 'classes' => 'bg-blue-500/20 text-blue-500'],
+                                        'assigned' => ['icon' => 'user-plus', 'classes' => 'bg-purple-500/20 text-purple-500'],
+                                        'commented' => ['icon' => 'chat-bubble-left-ellipsis', 'classes' => 'bg-gray-500/20 text-gray-500'],
+                                        'status_updated', 'resolved' => ['icon' => 'check-circle', 'classes' => 'bg-green-500/20 text-green-500'],
+                                        default => ['icon' => 'information-circle', 'classes' => 'bg-zinc-500/20 text-zinc-500'],
                                     };
                                 @endphp
-                                <div class="size-8 rounded-full bg-{{ $actConfig['color'] }}-500/20 text-{{ $actConfig['color'] }}-500 flex items-center justify-center">
+                                <div class="size-8 rounded-full {{ $actConfig['classes'] }} flex items-center justify-center">
                                     <flux:icon :name="$actConfig['icon']" size="xs" />
                                 </div>
                             </div>
