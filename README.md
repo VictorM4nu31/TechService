@@ -91,6 +91,7 @@ app/
 │   └── TeamController.php         — Equipos/grupos de trabajo
 ├── Livewire/
 │   ├── TicketCreate.php           — Formulario reactivo de creación
+│   ├── MaintenanceCalendar.php    — Calendario CMMS interactivo
 │   └── Actions/                   — Acciones complementarias
 ├── Models/                        — Ticket, Equipment, User, Comment, Activity...
 ├── Services/
@@ -98,6 +99,19 @@ app/
 └── Policies/
     └── TicketPolicy.php           — Control de acceso por recurso
 ```
+
+### Convenciones de componentes Livewire
+
+El proyecto usa un patrón deliberado para elegir entre Livewire de clase y Volt:
+
+- **Livewire de clase** (`app/Livewire/*.php` + `resources/views/livewire/*.blade.php`) para
+  componentes con lógica de negocio o interacciones complejas (formularios con subida de
+  archivos, calendario con estado propio): `TicketCreate`, `MaintenanceCalendar`.
+- **Volt / single-file** (`resources/views/livewire/**/**.blade.php`) para vistas delgadas y
+  transaccionales que solo exponen estado y acciones simples: detalles y edición de tickets.
+
+Esta separación mantiene testable la subida de archivos y deja el marcado denso en archivos
+ligeros.
 
 ---
 
