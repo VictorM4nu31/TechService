@@ -103,6 +103,13 @@
                     wire:navigate>
                     {{ auth()->user()->hasRole('Cliente') ? __('Mi Calendario') : __('Calendario de Mtto.') }}
                 </flux:sidebar.item>
+
+                @hasanyrole('Admin|Agente')
+                <flux:sidebar.item icon="clipboard-document-list" :href="route('maintenance-schedules.index')"
+                    :current="request()->routeIs('maintenance-schedules.*')" wire:navigate>
+                    {{ __('Programaciones') }}
+                </flux:sidebar.item>
+                @endhasanyrole
             </flux:sidebar.group>
 
             {{-- Sección: Administración (Solo Admin) --}}

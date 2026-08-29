@@ -19,6 +19,7 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
 
     Route::resource('equipment', \App\Http\Controllers\EquipmentController::class);
     Route::resource('clients', \App\Http\Controllers\ClientController::class);
+    Route::resource('maintenance-schedules', \App\Http\Controllers\MaintenanceScheduleController::class)->except(['show']);
     Route::get('calendar', function () {
         return view('calendar');
     })->name('calendar');
