@@ -96,7 +96,7 @@
                     <div class="flex flex-wrap gap-2">
                         @foreach ($priorities as $priority)
                             <button type="button" wire:click="$set('priority', '{{ $priority->value }}')"
-                                class="px-4 py-2 rounded-lg text-xs font-bold transition-all border-2 {{ $priority->value === $priority->value ? 'scale-105 shadow-lg' : 'opacity-50' }}
+                                class="px-4 py-2 rounded-lg text-xs font-bold transition-all border-2 {{ $priority->value === $this->priority ? 'scale-105 shadow-lg' : 'opacity-50' }}
                                 {{ match ($priority) {
                                     \App\Enums\TicketPriority::Alta => 'bg-red-500/10 text-red-500 border-red-500',
                                     \App\Enums\TicketPriority::Media => 'bg-yellow-500/10 text-yellow-500 border-yellow-500',
@@ -114,13 +114,13 @@
                     <div class="grid gap-3">
                         @foreach ($categories as $category)
                             <button type="button" wire:click="$set('category', '{{ $category->value }}')"
-                                class="flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left {{ $category->value === $category->value ? 'bg-blue-500/10 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-transparent border-zinc-800 hover:border-zinc-700' }}">
+                                class="flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left {{ $category->value === $this->category ? 'bg-blue-500/10 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-transparent border-zinc-800 hover:border-zinc-700' }}">
                                 <div
-                                    class="p-2 rounded-lg bg-zinc-800 {{ $category->value === $category->value ? 'text-blue-500' : 'text-zinc-500' }}">
+                                    class="p-2 rounded-lg bg-zinc-800 {{ $category->value === $this->category ? 'text-blue-500' : 'text-zinc-500' }}">
                                     <flux:icon :name="$category->icon()" size="sm" />
                                 </div>
                                 <flux:text
-                                    class="font-medium {{ $category->value === $category->value ? 'text-zinc-100' : 'text-zinc-400' }}">
+                                    class="font-medium {{ $category->value === $this->category ? 'text-zinc-100' : 'text-zinc-400' }}">
                                     {{ $category->label() }}
                                 </flux:text>
                             </button>
