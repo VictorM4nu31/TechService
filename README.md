@@ -60,11 +60,11 @@ composer run dev
 
 ## 👥 Credenciales de Prueba (Seeders)
 
-| Rol     | Email                   | Password |
-| ------- | ----------------------- | -------- |
-| Admin   | admin@techservice.com   | password |
-| Agente  | agente@techservice.com  | password |
-| Cliente | cliente@techservice.com | password |
+| Rol     | Email                     | Password |
+| ------- | ------------------------- | -------- |
+| Admin   | admin@techservice.com     | password |
+| Agente  | agent1@techservice.com    | password |
+| Cliente | client1@techservice.com   | password |
 
 ---
 
