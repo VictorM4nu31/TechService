@@ -98,3 +98,20 @@ test('ticket creation fails without title', function () {
         ->call('save')
         ->assertHasErrors(['title']);
 });
+
+// --- Estado visual de selección en el formulario ---
+
+test('solo la prioridad seleccionada aparece activa', function () {
+    $user = User::factory()->create()->assignRole('Cliente');
+    $this->actingAs($user);
+
+    $component = Livewire\Livewire::test(App\Livewire\TicketCreate::class)
+        ->set('priority', TicketPriority::Alta->value);
+
+    $html = $component->html();
+
+    // La tarjeta/clase de prioridad alta (seleccionada) debe tener 'scale-105'
+    expect(substr_count($html, 'scale-105'))->toBe(1);
+
+    $component->assertSee(TicketPriority::Alta->value);
+});
