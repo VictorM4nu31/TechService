@@ -10,6 +10,14 @@
             </flux:button>
         </div>
 
+        @if (session('status'))
+            <div
+                class="flex items-center gap-3 bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-lg text-sm">
+                <flux:icon name="check-circle" size="sm" />
+                {{ session('status') }}
+            </div>
+        @endif
+
         <flux:card class="overflow-hidden p-0">
             <flux:table>
                 <flux:table.columns>

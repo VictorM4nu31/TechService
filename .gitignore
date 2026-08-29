@@ -25,3 +25,4 @@ yarn-error.log
 AGENTS.md
 boost.json
 opencode.json
+/.playwright-mcp

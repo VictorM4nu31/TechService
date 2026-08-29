@@ -64,6 +64,8 @@ class AppServiceProvider extends ServiceProvider
     {
         Date::use(CarbonImmutable::class);
 
+        \Illuminate\Support\Carbon::setLocale(config('app.locale'));
+
         DB::prohibitDestructiveCommands(
             app()->isProduction(),
         );
