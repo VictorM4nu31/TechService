@@ -10,10 +10,11 @@ beforeEach(function () {
 
 test('un cliente solo puede ver sus propios tickets', function () {
     $client = User::factory()->create()->assignRole('Cliente');
+    $otherUser = User::factory()->create()->assignRole('Cliente');
 
     $mine = Ticket::factory()->create(['created_by' => $client->id]);
     $mine2 = Ticket::factory()->create(['created_by' => $client->id]);
-    $other = Ticket::factory()->create();
+    $other = Ticket::factory()->create(['created_by' => $otherUser->id]);
 
     $visible = Ticket::query()->visibleTo($client)->get();
 
