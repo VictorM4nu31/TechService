@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Activity extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'user_id',
         'ticket_id',
@@ -17,9 +18,12 @@ class Activity extends Model
         'properties',
     ];
 
-    protected $casts = [
-        'properties' => 'json',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'properties' => 'array',
+        ];
+    }
 
     public function user(): BelongsTo
     {

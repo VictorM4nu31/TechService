@@ -19,6 +19,7 @@
                 autocomplete="email"
                 placeholder="email@example.com"
             />
+            @error('email') <p class="text-sm text-red-500">{{ $message }}</p> @enderror
 
             <!-- Password -->
             <div class="relative">
@@ -31,6 +32,7 @@
                     :placeholder="__('Password')"
                     viewable
                 />
+                @error('password') <p class="text-sm text-red-500">{{ $message }}</p> @enderror
 
                 @if (Route::has('password.request'))
                     <flux:link class="absolute top-0 text-sm end-0" :href="route('password.request')" wire:navigate>

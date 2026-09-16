@@ -1,14 +1,63 @@
 <x-layouts::app :title="__('Tickets')">
+    @php
+        $filtersActive = request()->filled('search') || request()->filled('status') || request()->filled('category');
+    @endphp
+
     <div class="flex flex-col gap-6">
         <div class="flex items-center justify-between">
             <div>
-                <flux:heading size="xl" level="1">{{ __('Todos los Tickets') }}</flux:heading>
-                <flux:subheading>{{ __('Gestiona las solicitudes de soporte técnico.') }}</flux:subheading>
+                <flux:heading size="xl" level="1">
+                    @if (request()->filled('search'))
+                        {{ __('Resultados para') }} "{{ request('search') }}"
+                    @elseif ($filtersActive)
+                        {{ __('Tickets Filtrados') }}
+                    @else
+                        {{ __('Todos los Tickets') }}
+                    @endif
+                </flux:heading>
+                <flux:subheading>
+                    @if ($filtersActive)
+                        {{ $tickets->total() }} {{ $tickets->total() === 1 ? __('ticket encontrado') : __('tickets encontrados') }} ·
+                        <a href="{{ route('tickets.index') }}" class="text-blue-500 hover:text-blue-400"
+                            wire:navigate>{{ __('Limpiar filtros') }}</a>
+                    @else
+                        {{ __('Gestiona las solicitudes de soporte técnico.') }}
+                    @endif
+                </flux:subheading>
             </div>
             <flux:button icon="plus" variant="primary" :href="route('tickets.create')" wire:navigate>
                 {{ __('Nuevo Ticket') }}
             </flux:button>
         </div>
+
+        <flux:card class="p-4">
+            <form method="GET" action="{{ route('tickets.index') }}"
+                class="flex flex-col md:flex-row gap-3 md:items-end">
+                <flux:input name="search" :label="__('Buscar')" icon="magnifying-glass"
+                    placeholder="{{ __('Buscar por título...') }}" :value="request('search')" class="flex-1" />
+                <flux:select name="status" :label="__('Estado')">
+                    <option value="">{{ __('Todos') }}</option>
+                    @foreach (\App\Enums\TicketStatus::cases() as $statusOption)
+                        <option value="{{ $statusOption->value }}" @selected(request('status') === $statusOption->value)>
+                            {{ $statusOption->label() }}
+                        </option>
+                    @endforeach
+                </flux:select>
+                <flux:select name="category" :label="__('Categoría')">
+                    <option value="">{{ __('Todas') }}</option>
+                    @foreach (\App\Enums\TicketCategory::cases() as $categoryOption)
+                        <option value="{{ $categoryOption->value }}" @selected(request('category') === $categoryOption->value)>
+                            {{ $categoryOption->label() }}
+                        </option>
+                    @endforeach
+                </flux:select>
+                <flux:button variant="primary" type="submit" icon="funnel">{{ __('Filtrar') }}</flux:button>
+                @if ($filtersActive)
+                    <flux:button :href="route('tickets.index')" variant="ghost" icon="x-mark"
+                        wire:navigate>{{ __('Limpiar') }}</flux:button>
+                @endif
+            </form>
+        </flux:card>
 
         @if (session('status'))
             <div
@@ -18,7 +67,7 @@
             </div>
         @endif
 
-        <flux:card class="overflow-hidden p-0">
+        <flux:card class="p-0 overflow-x-auto">
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>{{ __('ID') }}</flux:table.column>

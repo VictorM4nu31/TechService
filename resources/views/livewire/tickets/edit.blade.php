@@ -13,26 +13,46 @@ state([
     'description' => fn ($ticket) => $ticket->description,
     'equipment_id' => fn ($ticket) => $ticket->equipment_id,
     'location' => fn ($ticket) => $ticket->location,
-    'priority' => fn ($ticket) => $ticket->priority,
-    'category' => fn ($ticket) => $ticket->category,
+    'priority' => fn ($ticket) => $ticket->priority->value,
+    'category' => fn ($ticket) => $ticket->category->value,
     'maintenance_type' => fn ($ticket) => $ticket->maintenance_type,
 ]);
 
 rules([
     'title' => 'required|min:5',
-    'description' => 'required',
+    'description' => 'required|min:10',
     'priority' => ['required', 'in:'.implode(',', array_column(TicketPriority::cases(), 'value'))],
     'category' => ['required', 'in:'.implode(',', array_column(TicketCategory::cases(), 'value'))],
-    'equipment_id' => 'nullable|exists:equipment,id',
+    'equipment_id' => [
+        'nullable',
+        function (string $attribute, mixed $value, Closure $fail) {
+            $equipment = Equipment::find($value);
+
+            if ($equipment === null || ! $equipment->isVisibleTo(auth()->user())) {
+                $fail('El equipo seleccionado no es válido.');
+            }
+        },
+    ],
+])->messages([
+    'title.required' => 'El título es obligatorio.',
+    'title.min' => 'El título debe tener al menos :min caracteres.',
+    'description.required' => 'La descripción es obligatoria.',
+    'description.min' => 'La descripción debe tener al menos :min caracteres.',
+    'priority.required' => 'Selecciona una prioridad.',
+    'priority.in' => 'La prioridad seleccionada no es válida.',
+    'category.required' => 'Selecciona una categoría.',
+    'category.in' => 'La categoría seleccionada no es válida.',
 ]);
 
 $save = function (TicketService $ticketService) {
+    $this->authorize('update', $this->ticket);
+
     $this->validate();
 
     $this->ticket->update([
         'title' => $this->title,
         'description' => $this->description,
-        'equipment_id' => $this->equipment_id,
+        'equipment_id' => $this->equipment_id ?: null,
         'location' => $this->location,
         'priority' => $this->priority,
         'category' => $this->category,
@@ -46,7 +66,7 @@ $save = function (TicketService $ticketService) {
 
 $priorities = computed(fn () => TicketPriority::cases());
 $categories = computed(fn () => TicketCategory::cases());
-$equipments = computed(fn () => Equipment::where('user_id', $this->ticket->created_by)->get());
+$equipments = computed(fn () => Equipment::query()->visibleToUser(auth()->user())->orderBy('name')->get());
 
 ?>
 <div>
@@ -55,6 +75,14 @@ $equipments = computed(fn () => Equipment::where('user_id', $this->ticket->creat
 
         <div class="grid lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-6">
+                @if ($errors->any())
+                    <div
+                        class="flex items-center gap-3 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
+                        <flux:icon name="exclamation-triangle" size="sm" />
+                        {{ $errors->first() }}
+                    </div>
+                @endif
+
                 <flux:card class="bg-zinc-900 border-zinc-800 space-y-4">
                     <flux:input wire:model="title" label="{{ __('Título') }}" required />
                     <flux:textarea wire:model="description" label="{{ __('Descripción') }}" rows="6" required />
@@ -67,7 +95,8 @@ $equipments = computed(fn () => Equipment::where('user_id', $this->ticket->creat
                                 </flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:input wire:model="location" label="{{ __('Ubicación') }}" />
+                        <flux:input wire:model="location" label="{{ __('Ubicación') }}"
+                            placeholder="{{ __('Ej: Piso 3, Oficina 301') }}" />
                     </div>
                 </flux:card>
 
@@ -82,19 +111,55 @@ $equipments = computed(fn () => Equipment::where('user_id', $this->ticket->creat
 
             <div class="space-y-6">
                 <flux:card class="bg-zinc-900 border-zinc-800 space-y-4">
-                    <flux:select wire:model="priority" label="{{ __('Prioridad') }}">
-                        @foreach($this->priorities as $priority)
-                            <flux:select.option value="{{ $priority->value }}">{{ $priority->label() }}</flux:select.option>
+                    <flux:heading size="md">{{ __('Prioridad') }}</flux:heading>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach ($this->priorities as $priorityOption)
+                            <button type="button"
+                                wire:click="$set('priority', '{{ $priorityOption->value }}')"
+                                class="px-4 py-2 rounded-lg text-xs font-bold transition-all border-2 {{ $priorityOption->value === $this->priority ? 'scale-105 shadow-lg' : 'opacity-50' }}
+                                {{ match ($priorityOption) {
+                                    TicketPriority::Alta => 'bg-red-500/10 text-red-500 border-red-500',
+                                    TicketPriority::Media => 'bg-yellow-500/10 text-yellow-500 border-yellow-500',
+                                    TicketPriority::Baja => 'bg-green-500/10 text-green-500 border-green-500',
+                                } }}">
+                                {{ strtoupper($priorityOption->label()) }}
+                            </button>
                         @endforeach
-                    </flux:select>
+                    </div>
+                </flux:card>
 
-                    <flux:select wire:model="category" label="{{ __('Categoría') }}">
-                        @foreach($this->categories as $category)
-                            <flux:select.option value="{{ $category->value }}">{{ $category->label() }}</flux:select.option>
+                <flux:card class="bg-zinc-900 border-zinc-800 space-y-4">
+                    <flux:heading size="md">{{ __('Categoría') }}</flux:heading>
+                    <div class="grid gap-3">
+                        @foreach ($this->categories as $categoryOption)
+                            <button type="button"
+                                wire:click="$set('category', '{{ $categoryOption->value }}')"
+                                class="flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left {{ $categoryOption->value === $this->category ? 'bg-blue-500/10 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-transparent border-zinc-800 hover:border-zinc-700' }}">
+                                <div
+                                    class="p-2 rounded-lg bg-zinc-800 {{ $categoryOption->value === $this->category ? 'text-blue-500' : 'text-zinc-500' }}">
+                                    <flux:icon :name="$categoryOption->icon()" size="sm" />
+                                </div>
+                                <flux:text
+                                    class="font-medium {{ $categoryOption->value === $this->category ? 'text-zinc-100' : 'text-zinc-400' }}">
+                                    {{ $categoryOption->label() }}
+                                </flux:text>
+                            </button>
                         @endforeach
-                    </flux:select>
+                    </div>
+                </flux:card>
 
-                    <flux:select wire:model="maintenance_type" label="{{ __('Tipo de Mantenimiento') }}">
+                <flux:card class="bg-zinc-900 border-zinc-800 space-y-4">
+                    <flux:heading size="md">{{ __('Tipo de Mantenimiento') }}</flux:heading>
+                    <flux:select wire:model="maintenance_type">
+                        <x-slot name="prefix">
+                            <flux:icon :name="match($maintenance_type) {
+                                'Hardware' => 'cpu-chip',
+                                'Software' => 'code-bracket',
+                                'Red' => 'wifi',
+                                'Seguridad' => 'lock-closed',
+                                default => 'question-mark-circle',
+                            }" size="sm" />
+                        </x-slot>
                         <flux:select.option value="Hardware">{{ __('Hardware') }}</flux:select.option>
                         <flux:select.option value="Software">{{ __('Software') }}</flux:select.option>
                         <flux:select.option value="Red">{{ __('Red') }}</flux:select.option>

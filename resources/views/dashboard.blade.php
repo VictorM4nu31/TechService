@@ -5,16 +5,20 @@
             <flux:heading size="xl" level="1">{{ __('Panel de Control') }}</flux:heading>
 
             <div class="flex items-center gap-4">
-                <div class="relative hidden md:block">
-                    <flux:input variant="filled" placeholder="{{ __('Buscar tickets...') }}" class="w-64" icon="magnifying-glass" />
+                <div class="relative hidden md:block"
+                     x-data="{ query: '' }">
+                    <flux:input
+                        variant="filled"
+                        placeholder="{{ __('Buscar tickets...') }}"
+                        class="w-64"
+                        icon="magnifying-glass"
+                        x-model="query"
+                        @keydown.enter="window.location.href = '{{ route('tickets.index') }}?search=' + encodeURIComponent(query)"
+                    />
                 </div>
                 <flux:button variant="primary" icon="plus" color="blue" :href="route('tickets.create')" wire:navigate>
                     {{ __('Nuevo Ticket') }}
                 </flux:button>
-                <div class="relative">
-                    <flux:button variant="ghost" icon="bell" />
-                    <span class="absolute top-0 right-0 size-4 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full border-2 border-zinc-900">{{ $stats['open'] }}</span>
-                </div>
             </div>
         </div>
 
@@ -59,24 +63,29 @@
                             @php
                                 $totalTickets = $stats['total'] ?: 1;
                                 $offset = 0;
-                                $colors = ['#10b981', '#3b82f6', '#ef4444'];
+                                $categoryColors = [
+                                    'Preventivo' => '#10b981',
+                                    'Correctivo' => '#3b82f6',
+                                    'Emergencia' => '#ef4444',
+                                ];
                             @endphp
-                            @foreach($categories as $index => $category)
+                            @foreach($categories as $category)
                                 @php
                                     $percent = ($category->tickets_count / $totalTickets) * 100;
                                     $dash = $percent . ", 100";
+                                    $color = $categoryColors[$category->category->value] ?? '#8b5cf6';
                                 @endphp
-                                <circle cx="18" cy="18" r="16" fill="none" stroke="{{ $colors[$index % 3] }}" stroke-width="4" stroke-dasharray="{{ $dash }}" stroke-dashoffset="-{{ $offset }}" />
+                                <circle cx="18" cy="18" r="16" fill="none" stroke="{{ $color }}" stroke-width="4" stroke-dasharray="{{ $dash }}" stroke-dashoffset="-{{ $offset }}" />
                                 @php $offset += $percent @endphp
                             @endforeach
                         </svg>
                     </div>
                 </div>
                 <div class="grid gap-2">
-                    @foreach($categories as $index => $category)
+                    @foreach($categories as $category)
                         <div class="flex items-center justify-between text-xs">
                             <div class="flex items-center gap-2">
-                                <div class="size-2 rounded-full" style="background-color: {{ $colors[$index % 3] }}"></div>
+                                <div class="size-2 rounded-full" style="background-color: {{ $categoryColors[$category->category->value] ?? '#8b5cf6' }}"></div>
                                 <flux:text>{{ $category->category }}</flux:text>
                             </div>
                             <flux:text class="font-bold">{{ $category->tickets_count }}</flux:text>

@@ -33,6 +33,8 @@ class MaintenanceScheduleController extends Controller
 
     public function store(StoreMaintenanceScheduleRequest $request): RedirectResponse
     {
+        $this->authorize('create', MaintenanceSchedule::class);
+
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
 

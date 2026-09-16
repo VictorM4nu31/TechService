@@ -12,7 +12,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="min-h-screen bg-white dark:bg-zinc-900 antialiased font-sans">
+<body class="min-h-screen bg-white dark:bg-zinc-800 antialiased font-sans">
     <div class="relative flex flex-col min-h-screen">
         {{-- Navigation --}}
         <header
@@ -115,7 +115,7 @@
         {{-- Footer --}}
         <footer
             class="w-full py-8 px-6 border-t border-zinc-100 dark:border-zinc-800 text-center text-sm text-zinc-500">
-            <p>&copy; {{ date('Y') }} TechSupport Pro. {{ __('Todos los derechos reservados.') }}</p>
+            <p>&copy; {{ date('Y') }} {{ config('app.name', 'TechService') }}. {{ __('Todos los derechos reservados.') }}</p>
         </footer>
     </div>
 

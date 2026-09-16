@@ -13,12 +13,26 @@ $addComment = function (TicketService $ticketService) {
 
     $this->validate([
         'newComment' => ['required', 'string', 'min:3', 'max:5000'],
+        'attachments' => ['nullable', 'array', 'max:5'],
+        'attachments.*' => ['file', 'mimes:png,jpg,jpeg,pdf', 'max:10240'],
+    ], [
+        'newComment.required' => 'Escribe un comentario antes de publicar.',
+        'newComment.min' => 'El comentario debe tener al menos :min caracteres.',
+        'newComment.max' => 'El comentario no puede superar los :max caracteres.',
+        'attachments.max' => 'Puedes adjuntar hasta :max archivos.',
+        'attachments.*.mimes' => 'Los archivos adjuntos deben ser PNG, JPG o PDF.',
+        'attachments.*.max' => 'Cada archivo adjunto no debe superar los 10MB.',
     ]);
 
     $ticketService->addComment($this->ticket, $this->newComment, $this->attachments);
     $this->newComment = '';
     $this->attachments = [];
     $this->ticket->refresh();
+};
+
+$removeAttachment = function (int $index) {
+    unset($this->attachments[$index]);
+    $this->attachments = array_values($this->attachments);
 };
 
 $updateStatus = function (string $statusValue, TicketService $ticketService) {
@@ -170,11 +184,42 @@ $recentActivities = computed(fn () => $this->ticket->activities()->latest()->tak
 
                     {{-- Nuevo Comentario --}}
                     <flux:card class="bg-zinc-900 border-zinc-800 space-y-4">
+                        @if ($errors->any())
+                            <div
+                                class="flex items-center gap-3 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
+                                <flux:icon name="exclamation-triangle" size="sm" />
+                                {{ $errors->first() }}
+                            </div>
+                        @endif
+
                         <flux:textarea wire:model="newComment" x-data x-autosize
                             placeholder="{{ __('Escribe un comentario o actualización...') }}" rows="3" />
+
+                        @if ($attachments)
+                            <div class="flex flex-wrap gap-2">
+                                @foreach ($attachments as $index => $attachment)
+                                    <span
+                                        class="inline-flex items-center gap-1.5 bg-zinc-800 border border-zinc-700 rounded-full pl-3 pr-1.5 py-1 text-xs text-zinc-300">
+                                        <flux:icon name="document" size="xs" class="text-zinc-500" />
+                                        <span class="max-w-40 truncate">{{ $attachment->getFilename() }}</span>
+                                        <button type="button" wire:click="removeAttachment({{ $index }})"
+                                            class="p-0.5 rounded-full text-zinc-500 hover:text-red-400 transition-colors">
+                                            <flux:icon name="x-mark" size="xs" />
+                                        </button>
+                                    </span>
+                                @endforeach
+                            </div>
+                        @endif
+
                         <div class="flex items-center justify-between">
-                            <flux:button variant="ghost" icon="paper-clip" size="sm">{{ __('Adjuntar') }}
-                            </flux:button>
+                            <div class="relative">
+                                <flux:button variant="ghost" icon="paper-clip" size="sm"
+                                    wire:loading.attr="disabled" wire:target="addComment">
+                                    {{ __('Adjuntar') }}
+                                </flux:button>
+                                <input type="file" wire:model="attachments" multiple
+                                    class="absolute inset-0 opacity-0 cursor-pointer" />
+                            </div>
                             <flux:button wire:click="addComment" wire:loading.attr="disabled" wire:target="addComment"
                                 variant="primary" color="blue" size="sm" icon="paper-airplane">
                                 <span wire:loading.remove

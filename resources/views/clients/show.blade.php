@@ -57,7 +57,8 @@
                                 </flux:text>
                             </div>
                             <div class="flex items-center gap-2">
-                                <flux:badge size="sm" variant="outline">{{ $equip->tickets->count() }} {{ __('tickets') }}
+                                <flux:badge size="sm" variant="outline">
+                                    {{ $equip->tickets->count() }} {{ $equip->tickets->count() === 1 ? __('ticket') : __('tickets') }}
                                 </flux:badge>
                             </div>
                         </a>

@@ -12,6 +12,8 @@ class ClientController extends Controller
 {
     public function index(): View
     {
+        $this->authorize('viewAny', Client::class);
+
         $clients = Client::withCount('equipment')
             ->latest()
             ->paginate(15);
@@ -21,11 +23,15 @@ class ClientController extends Controller
 
     public function create(): View
     {
+        $this->authorize('create', Client::class);
+
         return view('clients.create');
     }
 
     public function store(StoreClientRequest $request): RedirectResponse
     {
+        $this->authorize('create', Client::class);
+
         Client::create($request->validated());
 
         session()->flash('status', __('Cliente registrado con éxito.'));
@@ -35,6 +41,8 @@ class ClientController extends Controller
 
     public function show(Client $client): View
     {
+        $this->authorize('view', $client);
+
         $client->load(['equipment.owner', 'equipment.tickets']);
 
         return view('clients.show', compact('client'));
@@ -42,11 +50,15 @@ class ClientController extends Controller
 
     public function edit(Client $client): View
     {
+        $this->authorize('update', $client);
+
         return view('clients.edit', compact('client'));
     }
 
     public function update(UpdateClientRequest $request, Client $client): RedirectResponse
     {
+        $this->authorize('update', $client);
+
         $client->update($request->validated());
 
         session()->flash('status', __('Cliente actualizado con éxito.'));
@@ -56,6 +68,8 @@ class ClientController extends Controller
 
     public function destroy(Client $client): RedirectResponse
     {
+        $this->authorize('delete', $client);
+
         $client->delete();
 
         session()->flash('status', __('Cliente eliminado.'));

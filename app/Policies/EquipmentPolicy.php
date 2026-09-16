@@ -14,7 +14,7 @@ class EquipmentPolicy
 
     public function view(User $user, Equipment $equipment): bool
     {
-        return $user->hasRole('Admin') || $equipment->user_id === $user->id;
+        return $user->hasAnyRole(['Admin', 'Agente']) || $equipment->user_id === $user->id;
     }
 
     public function create(User $user): bool

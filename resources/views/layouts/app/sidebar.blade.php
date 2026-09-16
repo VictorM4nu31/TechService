@@ -40,7 +40,7 @@
             <flux:sidebar.group :heading="auth()->user()->hasRole('Cliente') ? __('Soporte') : __('Soporte Técnico')" class="grid text-xs font-semibold uppercase text-zinc-500 mt-2">
                 @role('Cliente')
                 <flux:sidebar.item icon="ticket" :href="route('tickets.index')"
-                    :current="request()->routeIs('tickets.index') && !request()->hasAny(['status', 'category'])" wire:navigate>
+                    :current="request()->routeIs('tickets.index') && !request()->hasAny(['status', 'category', 'search'])" wire:navigate>
                     {{ __('Mis Solicitudes') }}
                     <flux:badge variant="light" color="blue" class="ml-auto" size="sm">{{ $sidebarStats['total'] }}
                     </flux:badge>
@@ -51,7 +51,7 @@
                 </flux:sidebar.item>
                 @else
                 <flux:sidebar.item icon="ticket" :href="route('tickets.index')"
-                    :current="request()->routeIs('tickets.index') && !request()->hasAny(['status', 'category'])" wire:navigate>
+                    :current="request()->routeIs('tickets.index') && !request()->hasAny(['status', 'category', 'search'])" wire:navigate>
                     {{ __('Todos los Tickets') }}
                     <flux:badge variant="light" color="blue" class="ml-auto" size="sm">{{ $sidebarStats['total'] }}
                     </flux:badge>
@@ -112,22 +112,21 @@
                 @endhasanyrole
             </flux:sidebar.group>
 
-            {{-- Sección: Administración (Solo Admin) --}}
-            @role('Admin')
+            {{-- Sección: Administración --}}
+            @hasanyrole('Admin|Agente')
             <flux:sidebar.group :heading="__('Administración')"
                 class="grid text-xs font-semibold uppercase text-zinc-500 mt-2">
                 <flux:sidebar.item icon="user-group" :href="route('teams.index')"
                     :current="request()->routeIs('teams.index')" wire:navigate>
                     {{ __('Plantilla Técnica') }}
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="chart-bar" href="#" wire:navigate>
-                    {{ __('Dashboard de Reportes') }}
-                </flux:sidebar.item>
+                @role('Admin')
                 <flux:sidebar.item icon="cog-6-tooth" :href="route('profile.edit')" :current="request()->routeIs('profile.edit')" wire:navigate>
-                    {{ __('Ajustes del Sistema') }}
+                    {{ __('Mi Perfil') }}
                 </flux:sidebar.item>
+                @endrole
             </flux:sidebar.group>
-            @endrole
+            @endhasanyrole
         </flux:sidebar.nav>
 
         <flux:spacer />

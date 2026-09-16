@@ -18,6 +18,7 @@
                 autocomplete="name"
                 :placeholder="__('Full name')"
             />
+            @error('name') <p class="text-sm text-red-500">{{ $message }}</p> @enderror
 
             <!-- Email Address -->
             <flux:input
@@ -29,6 +30,7 @@
                 autocomplete="email"
                 placeholder="email@example.com"
             />
+            @error('email') <p class="text-sm text-red-500">{{ $message }}</p> @enderror
 
             <!-- Password -->
             <flux:input
@@ -40,6 +42,7 @@
                 :placeholder="__('Password')"
                 viewable
             />
+            @error('password') <p class="text-sm text-red-500">{{ $message }}</p> @enderror
 
             <!-- Confirm Password -->
             <flux:input

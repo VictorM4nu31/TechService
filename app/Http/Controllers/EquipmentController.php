@@ -16,7 +16,7 @@ class EquipmentController extends Controller
         $user = Auth::user();
 
         $equipment = Equipment::query()
-            ->when(! $user->hasRole('Admin'), fn ($q) => $q->where('user_id', $user->id))
+            ->when(! $user->hasAnyRole(['Admin', 'Agente']), fn ($q) => $q->where('user_id', $user->id))
             ->withCount('tickets')
             ->with('owner')
             ->latest()
@@ -45,7 +45,7 @@ class EquipmentController extends Controller
     public function show(Equipment $equipment): View
     {
         $this->authorize('view', $equipment);
-        $equipment->load(['tickets.status', 'tickets.priority', 'owner', 'client', 'tickets.category']);
+        $equipment->load(['tickets', 'owner', 'client']);
 
         return view('equipment.show', compact('equipment'));
     }

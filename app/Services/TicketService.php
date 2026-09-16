@@ -90,5 +90,10 @@ class TicketService
             Cache::forget("dashboard:{$ticket->assigned_to}");
             Cache::forget("sidebar:{$ticket->assigned_to}");
         }
+
+        foreach (User::role(['Admin', 'Agente'])->pluck('id') as $userId) {
+            Cache::forget("dashboard:{$userId}");
+            Cache::forget("sidebar:{$userId}");
+        }
     }
 }

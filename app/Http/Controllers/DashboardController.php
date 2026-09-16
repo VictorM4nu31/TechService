@@ -30,6 +30,7 @@ class DashboardController extends Controller
                 ->latest()->take(3)->get();
 
             $recentTickets = Ticket::visibleTo($user)
+                ->whereNotIn('id', $criticalTickets->pluck('id'))
                 ->latest()->take(5)->get();
 
             $categories = Ticket::visibleTo($user)

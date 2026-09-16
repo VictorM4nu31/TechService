@@ -122,7 +122,8 @@
                     </div>
                 </flux:card>
 
-                <flux:button variant="primary" :href="route('tickets.create')" wire:navigate class="w-full" icon="plus">
+                <flux:button variant="primary" :href="route('tickets.create', ['equipment' => $equipment->id])"
+                    wire:navigate class="w-full" icon="plus">
                     {{ __('Abrir Ticket para este Equipo') }}
                 </flux:button>
             </div>

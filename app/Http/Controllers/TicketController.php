@@ -14,6 +14,7 @@ class TicketController extends Controller
         $tickets = Ticket::query()
             ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->when($request->category, fn ($q) => $q->where('category', $request->category))
+            ->when($request->search, fn ($q) => $q->where('title', 'like', "%{$request->search}%"))
             ->visibleTo(auth()->user())
             ->with(['creator', 'assignee'])
             ->latest()

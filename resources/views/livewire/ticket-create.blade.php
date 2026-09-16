@@ -21,6 +21,14 @@
                     </flux:text>
 
                     <div class="space-y-4 pt-4">
+                        @if ($errors->any())
+                            <div
+                                class="flex items-center gap-3 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
+                                <flux:icon name="exclamation-triangle" size="sm" />
+                                {{ $errors->first() }}
+                            </div>
+                        @endif
+
                         <flux:input wire:model="title" label="{{ __('Título del Ticket *') }}"
                             placeholder="{{ __('Ej: No funciona la impresora') }}" required />
                         <flux:textarea wire:model="description" label="{{ __('Descripción Detallada *') }}" x-data
@@ -37,8 +45,8 @@
                                 </flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:input wire:model="location" label="{{ __('Ubicación *') }}"
-                            placeholder="{{ __('Ej: Piso 3, Oficina 301') }}" />
+                        <flux:input wire:model="location" label="{{ __('Ubicación') }}"
+                            placeholder="{{ __('Ej: Piso 3, Oficina 301 (opcional)') }}" />
                     </div>
                 </flux:card>
 

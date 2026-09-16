@@ -20,7 +20,7 @@
             </div>
         @endif
 
-        <flux:card class="overflow-hidden p-0">
+        <flux:card class="p-0 overflow-x-auto">
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>{{ __('Nombre') }}</flux:table.column>

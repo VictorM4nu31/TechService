@@ -32,8 +32,16 @@ class GeneratePreventiveWorkOrders extends Command
             return Command::SUCCESS;
         }
 
+        $admin = User::role('Admin')->first();
+
+        if ($admin === null) {
+            $this->error('No se encontró un usuario con rol Admin. No se generaron órdenes de trabajo.');
+
+            return Command::FAILURE;
+        }
+
         foreach ($schedules as $schedule) {
-            $this->generateWorkOrder($schedule);
+            $this->generateWorkOrder($schedule, $admin->id);
         }
 
         $this->info("Generated {$schedules->count()} preventive maintenance work orders.");
@@ -41,7 +49,7 @@ class GeneratePreventiveWorkOrders extends Command
         return Command::SUCCESS;
     }
 
-    protected function generateWorkOrder(MaintenanceSchedule $schedule): void
+    protected function generateWorkOrder(MaintenanceSchedule $schedule, int $adminId): void
     {
         Ticket::create([
             'title' => "Mantenimiento Preventivo: {$schedule->name} - {$schedule->equipment->name}",
@@ -51,7 +59,7 @@ class GeneratePreventiveWorkOrders extends Command
             'category' => TicketCategory::Preventivo,
             'equipment_id' => $schedule->equipment_id,
             'due_date' => now()->addDays(2),
-            'created_by' => User::whereHas('roles', fn ($q) => $q->where('name', 'Admin'))->first()?->id,
+            'created_by' => $adminId,
             'maintenance_type' => 'Preventivo',
         ]);
 

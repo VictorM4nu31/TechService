@@ -10,11 +10,14 @@
 
 @theme {
     --font-sans:
-        "Outfit", "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+        "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
         "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
         "Noto Color Emoji";
 
-    /* Breathtaking 'Stellar Midnight' Theme */
+    /* Breathtaking 'Stellar Midnight' Theme
+       zinc-800 = App/Sidebar-content background (#1b2430)
+       zinc-900 = Elevated card & sidebar surfaces (#111823)
+       zinc-950 = Deepest elements (#0b101a) */
     --color-zinc-50: #f5f7fa;
     --color-zinc-100: #e4e7eb;
     --color-zinc-200: #cbd2d9;

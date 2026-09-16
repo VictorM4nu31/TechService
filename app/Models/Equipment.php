@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Equipment extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'user_id',
         'client_id',
@@ -19,6 +21,23 @@ class Equipment extends Model
         'serial_number',
         'type',
     ];
+
+    public function scopeVisibleToUser(Builder $query, User $user): Builder
+    {
+        return $query->when(
+            ! $user->hasAnyRole(['Admin', 'Agente']),
+            fn (Builder $q) => $q->where('user_id', $user->id),
+        );
+    }
+
+    public function isVisibleTo(User $user): bool
+    {
+        if ($user->hasAnyRole(['Admin', 'Agente'])) {
+            return true;
+        }
+
+        return $this->user_id === $user->id;
+    }
 
     public function client(): BelongsTo
     {
