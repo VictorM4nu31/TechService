@@ -1,221 +1,188 @@
-<x-layouts::app :title="__('Dashboard')">
-    <div class="flex flex-col gap-8">
-        {{-- Header --}}
-        <div class="flex items-center justify-between bg-zinc-900/50 p-4 -m-4 mb-4 border-b border-zinc-800">
-            <flux:heading size="xl" level="1">{{ __('Panel de Control') }}</flux:heading>
-
-            <div class="flex items-center gap-4">
-                <div class="relative hidden md:block"
-                     x-data="{ query: '' }">
-                    <flux:input
-                        variant="filled"
-                        placeholder="{{ __('Buscar tickets...') }}"
-                        class="w-64"
-                        icon="magnifying-glass"
-                        x-model="query"
-                        @keydown.enter="window.location.href = '{{ route('tickets.index') }}?search=' + encodeURIComponent(query)"
-                    />
+<x-layouts::app :title="__('Panel de Control')">
+    <div class="mx-auto flex max-w-[1600px] flex-col gap-8">
+        <header class="flex flex-col gap-5 border-b border-signal-border pb-6 lg:flex-row lg:items-end lg:justify-between">
+            <div class="space-y-3">
+                <p class="signal-kicker">{{ __('Centro de señales') }}</p>
+                <div>
+                    <flux:heading size="xl" level="1" class="tracking-tight">{{ __('Qué necesita atención') }}</flux:heading>
+                    <flux:subheading class="mt-2 max-w-2xl text-signal-muted">
+                        {{ __('Una vista operativa de incidencias abiertas, riesgo y próximas acciones.') }}
+                    </flux:subheading>
                 </div>
-                <flux:button variant="primary" icon="plus" color="blue" :href="route('tickets.create')" wire:navigate>
-                    {{ __('Nuevo Ticket') }}
+            </div>
+
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <form method="GET" action="{{ route('tickets.index') }}" class="min-w-0 sm:w-72">
+                    <flux:input name="search" variant="filled" placeholder="{{ __('Buscar por ticket o equipo...') }}"
+                        icon="magnifying-glass" aria-label="{{ __('Buscar tickets') }}" />
+                </form>
+                <flux:button variant="primary" icon="plus" :href="route('tickets.create')" wire:navigate
+                    class="bg-signal-accent text-signal-ink hover:bg-signal-accent/85">
+                    {{ __('Reportar incidencia') }}
                 </flux:button>
             </div>
-        </div>
+        </header>
 
-        {{-- Top Charts Row --}}
-        <div class="grid gap-6 md:grid-cols-3">
-            {{-- Line Chart Placeholder --}}
-            <flux:card x-data="{ shown: false }" x-intersect.once.margin.-10%.0px="shown = true" :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'" class="flex flex-col gap-4 bg-zinc-900 border-zinc-800 transition-all duration-700 ease-out">
-                <div class="flex items-center justify-between">
-                    <flux:text size="sm" class="font-medium text-zinc-400">{{ __('Tickets Creados vs Resueltos') }}</flux:text>
+        <section aria-label="{{ __('Resumen operativo') }}" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <a href="{{ route('tickets.index', ['status' => 'Abierto']) }}" wire:navigate class="signal-panel signal-focus group p-5 transition-colors hover:border-signal-accent/60">
+                <div class="flex items-start justify-between gap-3">
+                    <span class="signal-kicker text-signal-info">{{ __('Entrada') }}</span>
+                    <flux:icon name="arrow-up-right" size="xs" class="text-signal-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                 </div>
-                @php
-                    $maxCount = max($stats['total'], $stats['resolved'], 1);
-                @endphp
-                <div class="flex flex-col justify-end gap-5 h-48 w-full">
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs mb-1">
-                            <flux:text size="xs">{{ __('Creados') }}</flux:text>
-                            <flux:text size="xs" class="font-bold">{{ $stats['total'] }}</flux:text>
-                        </div>
-                        <div class="h-3 w-full bg-zinc-800 rounded-full overflow-hidden">
-                            <div class="h-full bg-blue-500" style="width: {{ ($stats['total'] / $maxCount) * 100 }}%"></div>
-                        </div>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs mb-1">
-                            <flux:text size="xs">{{ __('Resueltos') }}</flux:text>
-                            <flux:text size="xs" class="font-bold">{{ $stats['resolved'] }}</flux:text>
-                        </div>
-                        <div class="h-3 w-full bg-zinc-800 rounded-full overflow-hidden">
-                            <div class="h-full bg-green-500" style="width: {{ ($stats['resolved'] / $maxCount) * 100 }}%"></div>
-                        </div>
-                    </div>
+                <div class="mt-5 flex items-end justify-between gap-4">
+                    <span class="font-mono text-4xl font-medium tracking-tight text-signal-ink">{{ $stats['open'] }}</span>
+                    <span class="pb-1 text-right text-xs text-signal-muted">{{ __('tickets abiertos') }}</span>
                 </div>
-            </flux:card>
+            </a>
 
-            {{-- Donut Chart --}}
-            <flux:card x-data="{ shown: false }" x-intersect.once.margin.-10%.0px="shown = true" :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'" class="flex flex-col gap-4 bg-zinc-900 border-zinc-800 transition-all duration-700 delay-100 ease-out">
-                <flux:text size="sm" class="font-medium text-zinc-400">{{ __('Distribución por Categoría') }}</flux:text>
-                <div class="flex items-center justify-center p-4">
-                    <div class="relative size-40">
-                        <svg viewBox="0 0 36 36" class="size-full transform -rotate-90">
-                            @php
-                                $totalTickets = $stats['total'] ?: 1;
-                                $offset = 0;
-                                $categoryColors = [
-                                    'Preventivo' => '#10b981',
-                                    'Correctivo' => '#3b82f6',
-                                    'Emergencia' => '#ef4444',
-                                ];
-                            @endphp
-                            @foreach($categories as $category)
-                                @php
-                                    $percent = ($category->tickets_count / $totalTickets) * 100;
-                                    $dash = $percent . ", 100";
-                                    $color = $categoryColors[$category->category->value] ?? '#8b5cf6';
-                                @endphp
-                                <circle cx="18" cy="18" r="16" fill="none" stroke="{{ $color }}" stroke-width="4" stroke-dasharray="{{ $dash }}" stroke-dashoffset="-{{ $offset }}" />
-                                @php $offset += $percent @endphp
-                            @endforeach
-                        </svg>
-                    </div>
+            <a href="{{ route('tickets.index', ['status' => 'En Progreso']) }}" wire:navigate class="signal-panel signal-focus group p-5 transition-colors hover:border-signal-accent/60">
+                <div class="flex items-start justify-between gap-3">
+                    <span class="signal-kicker text-signal-secondary">{{ __('En curso') }}</span>
+                    <flux:icon name="arrow-up-right" size="xs" class="text-signal-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                 </div>
-                <div class="grid gap-2">
-                    @foreach($categories as $category)
-                        <div class="flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-2">
-                                <div class="size-2 rounded-full" style="background-color: {{ $categoryColors[$category->category->value] ?? '#8b5cf6' }}"></div>
-                                <flux:text>{{ $category->category }}</flux:text>
-                            </div>
-                            <flux:text class="font-bold">{{ $category->tickets_count }}</flux:text>
-                        </div>
-                    @endforeach
+                <div class="mt-5 flex items-end justify-between gap-4">
+                    <span class="font-mono text-4xl font-medium tracking-tight text-signal-ink">{{ $stats['in_progress'] }}</span>
+                    <span class="pb-1 text-right text-xs text-signal-muted">{{ __('en progreso') }}</span>
                 </div>
-            </flux:card>
+            </a>
 
-            {{-- Bar Chart --}}
-            <flux:card x-data="{ shown: false }" x-intersect.once.margin.-10%.0px="shown = true" :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'" class="flex flex-col gap-4 bg-zinc-900 border-zinc-800 transition-all duration-700 delay-200 ease-out">
-                <flux:heading size="md">{{ __('Tickets por Estado') }}</flux:heading>
-                <div class="flex flex-col gap-3 mt-4">
-                    @php
-                        $stateStats = [
-                            ['label' => 'Abierto', 'count' => $stats['open'], 'color' => 'bg-blue-500', 'percent' => ($stats['open'] / $totalTickets) * 100],
-                            ['label' => 'En Progreso', 'count' => $stats['in_progress'], 'color' => 'bg-yellow-500', 'percent' => ($stats['in_progress'] / $totalTickets) * 100],
-                            ['label' => 'Cerrado', 'count' => $stats['resolved'], 'color' => 'bg-green-500', 'percent' => ($stats['resolved'] / $totalTickets) * 100],
-                        ];
-                    @endphp
-                    @foreach($stateStats as $stat)
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-xs mb-1">
-                                <flux:text>{{ $stat['label'] }}</flux:text>
-                                <flux:text>{{ round($stat['percent']) }}%</flux:text>
-                            </div>
-                            <div class="h-3 w-full bg-zinc-800 rounded-full overflow-hidden">
-                                <div class="h-full {{ $stat['color'] }}" style="width: {{ $stat['percent'] }}%"></div>
-                            </div>
-                        </div>
-                    @endforeach
+            <a href="{{ route('tickets.index', ['category' => 'Emergencia']) }}" wire:navigate class="signal-panel signal-focus group border-signal-error/40 p-5 transition-colors hover:border-signal-error">
+                <div class="flex items-start justify-between gap-3">
+                    <span class="signal-kicker text-signal-error">{{ __('Riesgo') }}</span>
+                    <flux:icon name="exclamation-triangle" size="xs" class="text-signal-error" />
                 </div>
-            </flux:card>
-        </div>
+                <div class="mt-5 flex items-end justify-between gap-4">
+                    <span class="font-mono text-4xl font-medium tracking-tight text-signal-ink">{{ $stats['overdue'] }}</span>
+                    <span class="pb-1 text-right text-xs text-signal-muted">{{ __('vencidos') }}</span>
+                </div>
+            </a>
 
-        {{-- Bottom Grid --}}
-        <div class="grid gap-6 md:grid-cols-2">
-            {{-- Tickets Grid --}}
-            <div class="flex flex-col gap-6">
-                <div>
-                    <flux:heading size="lg">{{ __('Tickets Críticos') }}</flux:heading>
+            <div class="signal-panel p-5">
+                <div class="flex items-start justify-between gap-3">
+                    <span class="signal-kicker text-signal-success">{{ __('Flujo') }}</span>
+                    <flux:icon name="check-circle" size="xs" class="text-signal-success" />
                 </div>
-                @forelse($criticalTickets as $ticket)
-                    <flux:card class="flex gap-4 items-start bg-zinc-900 border-zinc-800 hover:border-red-500/50 transition-colors pointer-cursor" :href="route('tickets.show', $ticket)" wire:navigate>
-                        <div class="p-2 rounded-lg bg-blue-500/10 text-blue-500">
-                            <flux:icon name="wrench" size="sm" />
-                        </div>
-                        <div class="flex-1 space-y-1">
-                            <div class="flex items-center gap-2">
-                                <flux:text size="xs" class="text-zinc-500">#{{ $ticket->id }}</flux:text>
-                                <flux:badge color="red" size="sm" variant="solid">{{ $ticket->priority->label() }}</flux:badge>
-                                <flux:spacer />
-                                <flux:badge :color="$ticket->status->color()" size="sm">{{ $ticket->status->label() }}</flux:badge>
-                            </div>
-                            <flux:heading size="md" class="mt-1">{{ $ticket->title }}</flux:heading>
-                            <div class="flex items-center gap-4 text-xs text-zinc-500">
-                                <span class="flex items-center gap-1"><flux:icon name="map-pin" size="xs" /> {{ $ticket->location ?? __('Sin ubicación') }}</span>
-                                <span class="flex items-center gap-1"><flux:icon name="clock" size="xs" /> {{ $ticket->created_at->diffForHumans() }}</span>
-                            </div>
-                        </div>
-                    </flux:card>
-                @empty
-                    <flux:card class="bg-zinc-900 border-zinc-800 text-center py-8">
-                        <flux:text class="text-zinc-500">{{ __('No hay tickets críticos pendientes') }}</flux:text>
-                    </flux:card>
-                @endforelse
-
-                <div class="flex items-center justify-between mt-4">
-                    <flux:heading size="lg">{{ __('Tickets Recientes') }}</flux:heading>
-                    <flux:link :href="route('tickets.index')" size="sm">{{ __('Ver todos') }} →</flux:link>
+                <div class="mt-5 flex items-end justify-between gap-4">
+                    <span class="font-mono text-4xl font-medium tracking-tight text-signal-ink">{{ $stats['resolved'] }}</span>
+                    <span class="pb-1 text-right text-xs text-signal-muted">{{ __('resueltos') }}</span>
                 </div>
-                @foreach($recentTickets as $ticket)
-                    <flux:card class="flex gap-4 items-start bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors pointer-cursor" :href="route('tickets.show', $ticket)" wire:navigate>
-                        <div class="p-2 rounded-lg bg-blue-500/10 text-blue-500">
-                            <flux:icon name="wrench" size="sm" />
-                        </div>
-                        <div class="flex-1 space-y-1">
-                            <div class="flex items-center gap-2">
-                                <flux:text size="xs" class="text-zinc-500">#{{ $ticket->id }}</flux:text>
-                                <flux:badge size="sm" variant="outline">{{ $ticket->priority->label() }}</flux:badge>
-                                <flux:spacer />
-                                <flux:badge :color="$ticket->status->color()" size="sm">{{ $ticket->status->label() }}</flux:badge>
-                            </div>
-                            <flux:heading size="md" class="mt-1">{{ $ticket->title }}</flux:heading>
-                            <div class="flex items-center gap-4 text-xs text-zinc-500">
-                                <span class="flex items-center gap-1"><flux:icon name="map-pin" size="xs" /> {{ $ticket->location ?? __('Sin ubicación') }}</span>
-                                <span class="flex items-center gap-1"><flux:icon name="clock" size="xs" /> {{ $ticket->created_at->diffForHumans() }}</span>
-                            </div>
-                        </div>
-                    </flux:card>
-                @endforeach
             </div>
+        </section>
 
-            {{-- Recent Activity --}}
-            <flux:card class="bg-zinc-900 border-zinc-800 flex flex-col gap-6">
-                <flux:heading size="lg">{{ __('Actividad Reciente') }}</flux:heading>
+        <div class="grid gap-8 xl:grid-cols-[minmax(0,1.5fr)_minmax(20rem,0.75fr)]">
+            <section class="signal-panel overflow-hidden" aria-labelledby="next-actions-heading">
+                <div class="flex flex-col gap-4 border-b border-signal-border p-5 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <p class="signal-kicker">{{ __('Orden de trabajo') }}</p>
+                        <flux:heading id="next-actions-heading" size="lg" class="mt-2">{{ __('Próximas acciones') }}</flux:heading>
+                        <flux:text size="sm" class="mt-1 text-signal-muted">{{ __('La cola se ordena por riesgo, vencimiento y prioridad.') }}</flux:text>
+                    </div>
+                    <flux:link :href="route('tickets.index')" wire:navigate class="text-signal-accent">{{ __('Abrir cola completa') }} <span aria-hidden="true">→</span></flux:link>
+                </div>
 
-                <div class="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-zinc-800">
-                    @forelse($activities as $activity)
-                        <div class="relative flex items-start gap-4">
-                            <div class="flex size-10 items-center justify-center rounded-full bg-zinc-900 ring-4 ring-zinc-900 z-10">
-                                @php
-                                    $actConfig = match($activity->type) {
-                                        'created' => ['icon' => 'plus-circle', 'classes' => 'bg-blue-500/20 text-blue-500'],
-                                        'assigned' => ['icon' => 'user-plus', 'classes' => 'bg-purple-500/20 text-purple-500'],
-                                        'commented' => ['icon' => 'chat-bubble-left-ellipsis', 'classes' => 'bg-gray-500/20 text-gray-500'],
-                                        'status_updated', 'resolved' => ['icon' => 'check-circle', 'classes' => 'bg-green-500/20 text-green-500'],
-                                        default => ['icon' => 'information-circle', 'classes' => 'bg-zinc-500/20 text-zinc-500'],
-                                    };
-                                @endphp
-                                <div class="size-8 rounded-full {{ $actConfig['classes'] }} flex items-center justify-center">
-                                    <flux:icon :name="$actConfig['icon']" size="xs" />
+                <div class="divide-y divide-signal-border">
+                    @foreach($criticalTickets as $ticket)
+                        <a href="{{ route('tickets.show', $ticket) }}" wire:navigate class="signal-focus group flex flex-col gap-4 border-s-2 border-signal-error bg-signal-error/5 p-5 transition-colors hover:bg-signal-error/10 sm:flex-row sm:items-center sm:justify-between">
+                            <div class="flex min-w-0 items-start gap-4">
+                                <span class="mt-1 flex size-8 shrink-0 items-center justify-center rounded-md bg-signal-error/15 text-signal-error"><flux:icon name="exclamation-triangle" size="xs" /></span>
+                                <div class="min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="signal-kicker text-signal-error">{{ __('Atención inmediata') }}</span>
+                                        <span class="font-mono text-[11px] text-signal-muted">#{{ $ticket->id }}</span>
+                                    </div>
+                                    <flux:heading size="sm" class="mt-2 truncate text-signal-ink group-hover:text-signal-accent">{{ $ticket->title }}</flux:heading>
+                                    <flux:text size="xs" class="mt-2 text-signal-muted">{{ $ticket->location ?? __('Ubicación no especificada') }} · {{ $ticket->created_at->diffForHumans() }}</flux:text>
                                 </div>
                             </div>
-                            <div class="flex-1">
-                                <div class="flex justify-between items-center text-sm">
-                                    <flux:text><span class="font-bold text-zinc-100">{{ $activity->user->name }}</span> {{ $activity->description }}</flux:text>
+                            <flux:badge color="red" size="sm">{{ $ticket->status->label() }}</flux:badge>
+                        </a>
+                    @endforeach
+
+                    @forelse($nextActions as $ticket)
+                        <a href="{{ route('tickets.show', $ticket) }}" wire:navigate class="signal-focus group flex flex-col gap-4 p-5 transition-colors hover:bg-signal-elevated/60 sm:flex-row sm:items-center sm:justify-between">
+                            <div class="flex min-w-0 items-start gap-4">
+                                <span class="mt-1 flex size-8 shrink-0 items-center justify-center rounded-md bg-signal-canvas font-mono text-[10px] text-signal-muted">#{{ $ticket->id }}</span>
+                                <div class="min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <flux:badge :color="$ticket->priority->color()" size="sm">{{ $ticket->priority->label() }}</flux:badge>
+                                        <span class="font-mono text-[11px] uppercase tracking-wider text-signal-muted">{{ $ticket->category->label() }}</span>
+                                    </div>
+                                    <flux:heading size="sm" class="mt-2 truncate text-signal-ink group-hover:text-signal-accent">{{ $ticket->title }}</flux:heading>
+                                    <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-signal-muted">
+                                        <span class="inline-flex items-center gap-1"><flux:icon name="cpu-chip" size="xs" /> {{ $ticket->equipment?->name ?? __('Sin equipo') }}</span>
+                                        <span class="inline-flex items-center gap-1"><flux:icon name="user" size="xs" /> {{ $ticket->assignee?->name ?? __('Sin asignar') }}</span>
+                                    </div>
                                 </div>
-                                @if($activity->ticket)
-                                    <flux:link :href="route('tickets.show', $activity->ticket)" size="sm" class="text-blue-500 font-medium mt-0.5" wire:navigate>
-                                        {{ $activity->ticket->title }}
-                                    </flux:link>
-                                @endif
-                                <flux:text size="xs" class="text-zinc-500 mt-2">{{ $activity->created_at->diffForHumans() }}</flux:text>
                             </div>
-                        </div>
+                            <div class="flex shrink-0 items-center justify-between gap-4 sm:block sm:text-right">
+                                <flux:badge :color="$ticket->status->color()" size="sm">{{ $ticket->status->label() }}</flux:badge>
+                                <flux:text size="xs" class="mt-1 block text-signal-muted">
+                                    {{ $ticket->due_date ? __('Vence :date', ['date' => $ticket->due_date->diffForHumans()]) : $ticket->created_at->diffForHumans() }}
+                                </flux:text>
+                            </div>
+                        </a>
                     @empty
-                        <flux:text class="text-zinc-500 text-center py-4">{{ __('No hay actividad reciente') }}</flux:text>
+                        <div class="p-10 text-center">
+                            <flux:icon name="check-circle" size="lg" class="mx-auto text-signal-success" />
+                            <flux:heading size="md" class="mt-3">{{ __('No hay acciones pendientes') }}</flux:heading>
+                            <flux:text size="sm" class="mt-1 text-signal-muted">{{ __('La cola está limpia por ahora.') }}</flux:text>
+                        </div>
                     @endforelse
                 </div>
-            </flux:card>
+            </section>
+
+            <aside class="flex flex-col gap-8">
+                <section class="signal-panel p-5" aria-labelledby="pulse-heading">
+                    <p class="signal-kicker">{{ __('Pulso del sistema') }}</p>
+                    <flux:heading id="pulse-heading" size="lg" class="mt-2">{{ __('Señales que requieren contexto') }}</flux:heading>
+                    <div class="mt-6 space-y-4">
+                        <a href="{{ route('tickets.index', ['category' => 'Emergencia']) }}" wire:navigate class="signal-focus flex items-center justify-between gap-4 rounded-lg border border-signal-border bg-signal-canvas p-4 hover:border-signal-error/70">
+                            <span class="flex items-center gap-3 text-sm"><span class="size-2 rounded-full bg-signal-error"></span>{{ __('Emergencias activas') }}</span>
+                            <span class="font-mono text-sm text-signal-error">{{ $categories->firstWhere('category.value', 'Emergencia')?->tickets_count ?? 0 }}</span>
+                        </a>
+                        <a href="{{ route('tickets.index', ['status' => 'Abierto']) }}" wire:navigate class="signal-focus flex items-center justify-between gap-4 rounded-lg border border-signal-border bg-signal-canvas p-4 hover:border-signal-warning/70">
+                            <span class="flex items-center gap-3 text-sm"><span class="size-2 rounded-full bg-signal-warning"></span>{{ __('Sin responsable') }}</span>
+                            <span class="font-mono text-sm text-signal-warning">{{ $stats['unassigned'] }}</span>
+                        </a>
+                    </div>
+                    <div class="mt-6 border-t border-signal-border pt-5">
+                        <div class="flex items-center justify-between text-xs text-signal-muted">
+                            <span>{{ __('Total histórico') }}</span>
+                            <span class="font-mono text-signal-ink">{{ $stats['total'] }}</span>
+                        </div>
+                        <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-signal-canvas">
+                            <div class="h-full rounded-full bg-signal-accent" style="width: {{ $stats['total'] > 0 ? min(100, ($stats['resolved'] / $stats['total']) * 100) : 0 }}%"></div>
+                        </div>
+                        <div class="mt-2 text-right text-[11px] text-signal-muted">{{ __(':percent% resueltos', ['percent' => $stats['total'] > 0 ? round(($stats['resolved'] / $stats['total']) * 100) : 0]) }}</div>
+                    </div>
+                </section>
+
+                <section class="signal-panel p-5" aria-labelledby="activity-heading">
+                    <div class="flex items-end justify-between gap-4">
+                        <div>
+                            <p class="signal-kicker">{{ __('Trazabilidad') }}</p>
+                            <flux:heading id="activity-heading" size="lg" class="mt-2">{{ __('Actividad reciente') }}</flux:heading>
+                        </div>
+                        <flux:icon name="clock" size="sm" class="text-signal-muted" />
+                    </div>
+                    <div class="mt-6 space-y-5">
+                        @forelse($activities->take(5) as $activity)
+                            <div class="flex gap-3">
+                                <span class="mt-1 size-2 shrink-0 rounded-full bg-signal-accent"></span>
+                                <div class="min-w-0">
+                                    <flux:text size="sm" class="leading-snug"><strong class="text-signal-ink">{{ $activity->user->name }}</strong> {{ $activity->description }}</flux:text>
+                                    @if($activity->ticket)
+                                        <flux:link :href="route('tickets.show', $activity->ticket)" wire:navigate class="mt-1 block truncate text-xs text-signal-info">{{ $activity->ticket->title }}</flux:link>
+                                    @endif
+                                    <flux:text size="xs" class="mt-1 text-signal-muted">{{ $activity->created_at->diffForHumans() }}</flux:text>
+                                </div>
+                            </div>
+                        @empty
+                            <flux:text class="text-signal-muted">{{ __('No hay actividad reciente.') }}</flux:text>
+                        @endforelse
+                    </div>
+                </section>
+            </aside>
         </div>
     </div>
 </x-layouts::app>

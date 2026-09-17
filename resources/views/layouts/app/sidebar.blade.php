@@ -5,10 +5,10 @@
     @include('partials.head')
 </head>
 
-<body class="min-h-screen bg-white dark:bg-zinc-800">
+<body class="min-h-screen bg-signal-canvas text-signal-ink dark:bg-signal-canvas">
     <flux:sidebar sticky collapsible="mobile"
-        class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-        <flux:sidebar.header class="pb-0!">
+        class="border-e border-signal-border bg-signal-surface dark:border-signal-border dark:bg-signal-surface">
+        <flux:sidebar.header class="pb-2!">
             <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
             <flux:sidebar.collapse class="lg:hidden" />
         </flux:sidebar.header>
@@ -27,9 +27,17 @@
             }
         </style>
 
+        <div class="px-3 pb-3">
+            <div class="flex items-center gap-2 rounded-lg border border-signal-border bg-signal-canvas px-3 py-2 text-xs text-signal-muted">
+                <span class="size-2 rounded-full bg-signal-success shadow-[0_0_0_3px_rgba(98,211,154,0.12)]"></span>
+                <span>{{ __('Operación estable') }}</span>
+                <span class="ml-auto font-mono text-[10px] text-signal-muted">{{ now()->format('H:i') }}</span>
+            </div>
+        </div>
+
         <flux:sidebar.nav class="gap-y-1">
             {{-- Sección: General --}}
-            <flux:sidebar.group :heading="__('General')" class="grid text-xs font-semibold uppercase text-zinc-500">
+            <flux:sidebar.group :heading="__('General')" class="grid text-xs font-semibold uppercase tracking-wider text-signal-muted">
                 <flux:sidebar.item icon="squares-2x2" :href="route('dashboard')"
                     :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Panel de Control') }}
@@ -37,7 +45,7 @@
             </flux:sidebar.group>
 
             {{-- Sección: Soporte Técnico --}}
-            <flux:sidebar.group :heading="auth()->user()->hasRole('Cliente') ? __('Soporte') : __('Soporte Técnico')" class="grid text-xs font-semibold uppercase text-zinc-500 mt-2">
+            <flux:sidebar.group :heading="auth()->user()->hasRole('Cliente') ? __('Soporte') : __('Soporte Técnico')" class="mt-2 grid text-xs font-semibold uppercase tracking-wider text-signal-muted">
                 @role('Cliente')
                 <flux:sidebar.item icon="ticket" :href="route('tickets.index')"
                     :current="request()->routeIs('tickets.index') && !request()->hasAny(['status', 'category', 'search'])" wire:navigate>
@@ -65,7 +73,7 @@
 
             {{-- Sección de Accesos Directos --}}
             <flux:sidebar.group :heading="auth()->user()->hasRole('Cliente') ? __('Mis Pendientes') : __('Accesos Directos')"
-                class="grid text-xs font-semibold uppercase text-zinc-500 mt-2">
+                class="mt-2 grid text-xs font-semibold uppercase tracking-wider text-signal-muted">
                 @role('Cliente')
                 <flux:sidebar.item icon="clock" :href="route('tickets.index', ['status' => 'Abierto'])" wire:navigate>
                     {{ __('Tickets Abiertos') }}
@@ -86,7 +94,7 @@
 
             {{-- Sección: Gestión CMMS / Equipos y Mantenimiento --}}
             <flux:sidebar.group :heading="auth()->user()->hasRole('Cliente') ? __('Equipos y Mantenimiento') : __('Gestión CMMS')"
-                class="grid text-xs font-semibold uppercase text-zinc-500 mt-2">
+                class="mt-2 grid text-xs font-semibold uppercase tracking-wider text-signal-muted">
                 <flux:sidebar.item icon="cpu-chip" :href="route('equipment.index')"
                     :current="request()->routeIs('equipment.*')" wire:navigate>
                     {{ auth()->user()->hasRole('Cliente') ? __('Mis Equipos') : __('Inventario de Equipos') }}
@@ -115,7 +123,7 @@
             {{-- Sección: Administración --}}
             @hasanyrole('Admin|Agente')
             <flux:sidebar.group :heading="__('Administración')"
-                class="grid text-xs font-semibold uppercase text-zinc-500 mt-2">
+                class="mt-2 grid text-xs font-semibold uppercase tracking-wider text-signal-muted">
                 <flux:sidebar.item icon="user-group" :href="route('teams.index')"
                     :current="request()->routeIs('teams.index')" wire:navigate>
                     {{ __('Plantilla Técnica') }}
@@ -136,7 +144,7 @@
 
 
     <!-- Mobile User Menu -->
-    <flux:header class="lg:hidden">
+    <flux:header class="border-b border-signal-border bg-signal-surface lg:hidden">
         <flux:sidebar.toggle class="lg:hidden" icon="bars-3" inset="left" />
 
         <flux:spacer />
@@ -144,7 +152,7 @@
         <flux:dropdown position="top" align="end">
             <flux:profile :initials="auth()->user()->initials()" icon-trailing="chevron-down" />
 
-            <flux:menu>
+            <flux:menu class="border-signal-border bg-signal-elevated">
                 <flux:menu.radio.group>
                     <div class="p-0 text-sm font-normal">
                         <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">

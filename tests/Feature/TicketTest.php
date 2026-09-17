@@ -44,6 +44,25 @@ test('admin can see all tickets', function () {
         ->assertSee('Unique Admin Ticket Title');
 });
 
+test('ticket search includes equipment and location context', function () {
+    $admin = User::factory()->create()->assignRole('Admin');
+    $equipment = \App\Models\Equipment::factory()->create([
+        'name' => 'Servidor Atlas',
+        'serial_number' => 'ATLAS-9000',
+        'user_id' => $admin->id,
+    ]);
+    $ticket = Ticket::factory()->create([
+        'title' => 'Incidencia de red',
+        'location' => 'Sala técnica norte',
+        'equipment_id' => $equipment->id,
+        'created_by' => $admin->id,
+    ]);
+
+    $this->actingAs($admin)->get(route('tickets.index', ['search' => 'ATLAS-9000']))
+        ->assertSuccessful()
+        ->assertSee($ticket->title);
+});
+
 // --- IDOR Prevention ---
 
 test('user cannot view ticket that belongs to another user', function () {

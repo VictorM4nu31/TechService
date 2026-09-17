@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\TicketPriority;
+use App\Enums\TicketStatus;
 use App\Models\Equipment;
 use App\Models\Ticket;
 use App\Models\User;
@@ -40,7 +41,10 @@ test('guardar la edición de un ticket no lanza error de enum', function () {
 test('la edición de un ticket valida los campos con mensajes en español', function () {
     $client = User::factory()->create()->assignRole('Cliente');
     $admin = User::factory()->create()->assignRole('Admin');
-    $ticket = Ticket::factory()->create(['created_by' => $client->id]);
+    $ticket = Ticket::factory()->create([
+        'created_by' => $client->id,
+        'status' => TicketStatus::Abierto,
+    ]);
 
     $this->actingAs($admin);
 
@@ -54,7 +58,10 @@ test('un cliente no puede asociar el equipo de otro cliente al editar', function
     $client = User::factory()->create()->assignRole('Cliente');
     $otherClient = User::factory()->create()->assignRole('Cliente');
     $foreignEquipment = Equipment::factory()->create(['user_id' => $otherClient->id]);
-    $ticket = Ticket::factory()->create(['created_by' => $client->id]);
+    $ticket = Ticket::factory()->create([
+        'created_by' => $client->id,
+        'status' => TicketStatus::Abierto,
+    ]);
 
     $this->actingAs($client);
 

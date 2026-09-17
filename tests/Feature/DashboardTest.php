@@ -22,12 +22,13 @@ test('el dashboard muestra los contadores reales de tickets', function () {
     \App\Models\Ticket::factory()->create([
         'created_by' => $user->id,
         'title' => 'Solicitud del dashboard',
+        'status' => \App\Enums\TicketStatus::Abierto,
     ]);
 
     $response = $this->actingAs($user)->get(route('dashboard'));
 
     $response->assertOk()
-        ->assertSee('Creados')
-        ->assertSee('Resueltos')
+        ->assertSee('Qué necesita atención')
+        ->assertSee('Próximas acciones')
         ->assertSee('Solicitud del dashboard');
 });

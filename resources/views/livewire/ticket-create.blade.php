@@ -1,24 +1,29 @@
 <div>
-    <div class="flex flex-col gap-6">
+    <div class="mx-auto flex max-w-6xl flex-col gap-8">
         {{-- Header --}}
-        <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
-            <div>
-                <flux:heading size="xl" level="1">{{ __('Nuevo Ticket') }}</flux:heading>
-                <flux:subheading>
-                    {{ __('Complete el formulario para registrar una solicitud de soporte técnico o mantenimiento.') }}
+        <div class="flex flex-col gap-4 border-b border-signal-border pb-6 sm:flex-row sm:items-end sm:justify-between">
+            <div class="space-y-3">
+                <p class="signal-kicker">{{ __('Entrada guiada') }}</p>
+                <flux:heading size="xl" level="1">{{ __('Reportar una incidencia') }}</flux:heading>
+                <flux:subheading class="max-w-2xl text-signal-muted">
+                    {{ __('Describe el síntoma, añade contexto y deja que el equipo técnico tome el siguiente paso.') }}
                 </flux:subheading>
             </div>
+            <div class="font-mono text-[11px] uppercase tracking-wider text-signal-muted">{{ __('Paso 1 de 1 · Guardado al enviar') }}</div>
         </div>
 
         <div class="grid lg:grid-cols-3 gap-8">
             {{-- Main Form Content --}}
             <div class="lg:col-span-2 space-y-8">
                 {{-- Información del Ticket --}}
-                <flux:card class="bg-zinc-900 border-zinc-800 space-y-6">
-                    <flux:heading size="lg">{{ __('Información del Ticket') }}</flux:heading>
-                    <flux:text size="sm" class="text-zinc-400 mt-1">
-                        {{ __('Complete los detalles del problema o solicitud de mantenimiento.') }}
-                    </flux:text>
+                <flux:card class="signal-panel space-y-6">
+                    <div>
+                        <p class="signal-kicker">{{ __('Señal principal') }}</p>
+                        <flux:heading size="lg" class="mt-2">{{ __('Qué está ocurriendo') }}</flux:heading>
+                        <flux:text size="sm" class="mt-1 text-signal-muted">
+                            {{ __('Cuanto más concreto sea el síntoma, más rápido podrá diagnosticarse.') }}
+                        </flux:text>
+                    </div>
 
                     <div class="space-y-4 pt-4">
                         @if ($errors->any())
@@ -51,24 +56,24 @@
                 </flux:card>
 
                 {{-- Archivos Adjuntos --}}
-                <flux:card class="bg-zinc-900 border-zinc-800 space-y-6">
-                    <flux:heading size="lg">{{ __('Archivos Adjuntos') }}</flux:heading>
-                    <flux:text size="sm" class="text-zinc-400 mt-1">
+                <flux:card class="signal-panel space-y-6">
+                    <flux:heading size="lg">{{ __('Evidencia') }}</flux:heading>
+                    <flux:text size="sm" class="text-signal-muted">
                         {{ __('Adjunte capturas de pantalla o documentos relevantes (opcional)') }}
                     </flux:text>
 
                     <div
-                        class="mt-4 border-2 border-dashed border-zinc-800 rounded-xl p-12 flex flex-col items-center justify-center gap-4 hover:border-zinc-700 transition-colors cursor-pointer relative">
+                        class="relative mt-4 flex cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-signal-border p-12 transition-colors hover:border-signal-accent/60">
                         <input type="file" wire:model="attachments" multiple
                             class="absolute inset-0 opacity-0 cursor-pointer" />
-                        <div class="p-4 rounded-full bg-zinc-800 text-zinc-400">
+                        <div class="rounded-lg bg-signal-canvas p-4 text-signal-accent">
                             <flux:icon name="arrow-up-tray" size="md" />
                         </div>
                         <div class="text-center">
-                            <flux:text class="font-medium text-zinc-300">
+                            <flux:text class="font-medium text-signal-ink">
                                 {{ __('Arrastra archivos aquí o haz clic para seleccionar') }}
                             </flux:text>
-                            <flux:text size="xs" class="text-zinc-500 mt-1">{{ __('PNG, JPG, PDF hasta 10MB') }}
+                            <flux:text size="xs" class="mt-1 text-signal-muted">{{ __('PNG, JPG, PDF hasta 10MB') }}
                             </flux:text>
                         </div>
                     </div>
@@ -99,7 +104,7 @@
             {{-- Sidebar Content --}}
             <div class="space-y-8">
                 {{-- Prioridad --}}
-                <flux:card class="bg-zinc-900 border-zinc-800 space-y-4">
+                <flux:card class="signal-panel space-y-4">
                     <flux:heading size="md">{{ __('Prioridad') }}</flux:heading>
                     <div class="flex flex-wrap gap-2">
                         @foreach ($priorities as $priority)
@@ -117,7 +122,7 @@
                 </flux:card>
 
                 {{-- Categoría --}}
-                <flux:card class="bg-zinc-900 border-zinc-800 space-y-4">
+                <flux:card class="signal-panel space-y-4">
                     <flux:heading size="md">{{ __('Categoría') }}</flux:heading>
                     <div class="grid gap-3">
                         @foreach ($categories as $category)
@@ -137,7 +142,7 @@
                 </flux:card>
 
                 {{-- Tipo de Mantenimiento --}}
-                <flux:card class="bg-zinc-900 border-zinc-800 space-y-4">
+                <flux:card class="signal-panel space-y-4">
                     <flux:heading size="md">{{ __('Tipo de Mantenimiento') }}</flux:heading>
                     <flux:select wire:model="maintenance_type">
                         <x-slot name="prefix">
@@ -160,7 +165,7 @@
                 {{-- Actions --}}
                 <div class="grid gap-3 pt-4">
                     <flux:button wire:click="save" wire:loading.attr="disabled" wire:target="save" variant="primary"
-                        class="w-full font-bold shadow-lg shadow-blue-500/20">
+                        class="w-full bg-signal-accent font-bold text-signal-ink shadow-lg shadow-signal-accent/10 hover:bg-signal-accent/85">
                         <span wire:loading.remove wire:target="save">{{ __('Crear Ticket') }}</span>
                         <span wire:loading wire:target="save" class="flex items-center gap-2">
                             <flux:icon name="arrow-path" size="xs" class="animate-spin" />

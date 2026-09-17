@@ -14,9 +14,20 @@ class TicketController extends Controller
         $tickets = Ticket::query()
             ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->when($request->category, fn ($q) => $q->where('category', $request->category))
-            ->when($request->search, fn ($q) => $q->where('title', 'like', "%{$request->search}%"))
+            ->when($request->search, function ($query, string $search): void {
+                $query->where(function ($searchQuery) use ($search): void {
+                    $searchQuery
+                        ->where('title', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhere('location', 'like', "%{$search}%")
+                        ->orWhere('id', $search)
+                        ->orWhereHas('equipment', fn ($equipmentQuery) => $equipmentQuery
+                            ->where('name', 'like', "%{$search}%")
+                            ->orWhere('serial_number', 'like', "%{$search}%"));
+                });
+            })
             ->visibleTo(auth()->user())
-            ->with(['creator', 'assignee'])
+            ->with(['creator', 'assignee', 'equipment'])
             ->latest()
             ->paginate(15);
 

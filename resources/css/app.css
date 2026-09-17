@@ -14,26 +14,40 @@
         "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
         "Noto Color Emoji";
 
-    /* Breathtaking 'Stellar Midnight' Theme
-       zinc-800 = App/Sidebar-content background (#1b2430)
-       zinc-900 = Elevated card & sidebar surfaces (#111823)
-       zinc-950 = Deepest elements (#0b101a) */
-    --color-zinc-50: #f5f7fa;
-    --color-zinc-100: #e4e7eb;
-    --color-zinc-200: #cbd2d9;
-    --color-zinc-300: #9aa5b1;
-    --color-zinc-400: #7b8794;
-    --color-zinc-500: #616e7c;
-    --color-zinc-600: #52606d;
-    --color-zinc-700: #3e4c59;
-    --color-zinc-800: #1b2430; /* Subdued card background */
-    --color-zinc-900: #111823; /* App Background */
-    --color-zinc-950: #0b101a; /* Deepest elements */
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-    /* Vibrant Accent (Electric Indigo/Violet) */
-    --color-accent: #6366f1;
-    --color-accent-content: #6366f1;
-    --color-accent-foreground: #ffffff;
+    --color-signal-canvas: #111817;
+    --color-signal-surface: #19211f;
+    --color-signal-elevated: #222d29;
+    --color-signal-ink: #f3f1ea;
+    --color-signal-muted: #9ba8a1;
+    --color-signal-border: #34423c;
+    --color-signal-primary: #174a45;
+    --color-signal-primary-strong: #0d332f;
+    --color-signal-accent: #d6f26a;
+    --color-signal-secondary: #d99c3d;
+    --color-signal-success: #62d39a;
+    --color-signal-warning: #e7b75b;
+    --color-signal-error: #f07b72;
+    --color-signal-info: #79c4df;
+
+    --ease-signal: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    --color-zinc-50: #f3f1ea;
+    --color-zinc-100: #e5e4dc;
+    --color-zinc-200: #c8d0ca;
+    --color-zinc-300: #b2beb7;
+    --color-zinc-400: #9ba8a1;
+    --color-zinc-500: #7d8b83;
+    --color-zinc-600: #617068;
+    --color-zinc-700: #4b5a52;
+    --color-zinc-800: #34423c;
+    --color-zinc-900: #19211f;
+    --color-zinc-950: #111817;
+
+    --color-accent: #d6f26a;
+    --color-accent-content: #d6f26a;
+    --color-accent-foreground: #18211f;
 }
 
 @layer theme {
@@ -50,14 +64,28 @@
         --color-zinc-900: #111823;
         --color-zinc-950: #0b101a;
 
-        /* Vibrant deeper accent for dark elements if needed */
-        --color-accent: #818cf8;
-        --color-accent-content: #818cf8;
-        --color-accent-foreground: #ffffff;
+        --color-accent: #d6f26a;
+        --color-accent-content: #d6f26a;
+        --color-accent-foreground: #18211f;
     }
 }
 
 @layer base {
+    :root {
+        color-scheme: dark;
+    }
+
+    body {
+        background: var(--color-signal-canvas);
+        color: var(--color-signal-ink);
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+
+    ::selection {
+        background: var(--color-signal-accent);
+        color: var(--color-signal-ink);
+    }
+
     *,
     ::after,
     ::before,
@@ -72,6 +100,40 @@
     .dark ::backdrop,
     .dark ::file-selector-button {
         border-color: var(--color-zinc-700, currentColor);
+    }
+}
+
+@utility signal-panel {
+    border: 1px solid var(--color-signal-border);
+    background: var(--color-signal-surface);
+    border-radius: 0.75rem;
+}
+
+@utility signal-kicker {
+    color: var(--color-signal-accent);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    line-height: 1rem;
+    text-transform: uppercase;
+}
+
+@utility signal-focus {
+    &:focus-visible {
+        outline: 2px solid var(--color-signal-accent);
+        outline-offset: 3px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
     }
 }
 
