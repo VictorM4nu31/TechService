@@ -45,7 +45,7 @@ class EquipmentController extends Controller
     public function show(Equipment $equipment): View
     {
         $this->authorize('view', $equipment);
-        $equipment->load(['tickets', 'owner', 'client']);
+        $equipment->load(['tickets', 'owner', 'client', 'maintenanceSchedules']);
 
         return view('equipment.show', compact('equipment'));
     }

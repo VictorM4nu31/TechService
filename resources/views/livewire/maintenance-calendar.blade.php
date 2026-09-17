@@ -38,13 +38,13 @@
                         <div class="space-y-1 overflow-y-auto max-h-[85px] no-scrollbar">
                             @if(isset($events[$day]))
                                 @foreach($events[$day] as $event)
-                                        <a href="{{ route('tickets.show', $event['id']) }}" wire:navigate class="block px-1.5 py-0.5 text-[10px] rounded border border-zinc-700 hover:bg-zinc-800 transition-colors truncate
+                                        <a href="{{ $event['kind'] === 'schedule' ? route('maintenance-schedules.edit', $event['id']) : route('tickets.show', $event['id']) }}" wire:navigate class="block truncate rounded border px-1.5 py-0.5 text-[10px] transition-colors hover:bg-zinc-800
                                                                   {{ match ($event['category'] ?? '') {
-                                        'Preventivo' => 'bg-green-500/10 text-green-400 border-green-500/20',
-                                        'Emergencia' => 'bg-red-500/10 text-red-400 border-red-500/20',
-                                        default => 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                                    } }}">
-                                            {{ $event['title'] }}
+                                         'Preventivo' => 'bg-green-500/10 text-green-400 border-green-500/20',
+                                         'Emergencia' => 'bg-red-500/10 text-red-400 border-red-500/20',
+                                         default => 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                     } }}">
+                                            {{ $event['kind'] === 'schedule' ? '[P] ' : '' }}{{ $event['title'] }}
                                         </a>
                                 @endforeach
                             @endif

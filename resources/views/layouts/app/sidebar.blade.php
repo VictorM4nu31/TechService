@@ -5,7 +5,11 @@
     @include('partials.head')
 </head>
 
-<body class="min-h-screen bg-signal-canvas text-signal-ink dark:bg-signal-canvas">
+<body class="min-h-screen bg-signal-canvas text-signal-ink dark:bg-signal-canvas"
+    x-data="{ commandOpen: false, commandQuery: '', openCommand() { this.commandOpen = true; this.commandQuery = ''; this.$nextTick(() => this.$refs.commandInput?.focus()); }, closeCommand() { this.commandOpen = false; } }"
+    @keydown.window.meta.k.prevent="openCommand()"
+    @keydown.window.ctrl.k.prevent="openCommand()"
+    @keydown.window.escape="closeCommand()">
     <flux:sidebar sticky collapsible="mobile"
         class="border-e border-signal-border bg-signal-surface dark:border-signal-border dark:bg-signal-surface">
         <flux:sidebar.header class="pb-2!">
@@ -33,6 +37,13 @@
                 <span>{{ __('Operación estable') }}</span>
                 <span class="ml-auto font-mono text-[10px] text-signal-muted">{{ now()->format('H:i') }}</span>
             </div>
+        </div>
+
+        <div class="px-3 pb-2">
+            <button type="button" @click="openCommand()" class="signal-focus flex w-full items-center justify-between gap-3 rounded-lg border border-signal-border bg-signal-canvas px-3 py-2 text-left text-xs text-signal-muted transition-colors hover:border-signal-accent/60 hover:text-signal-ink">
+                <span class="flex items-center gap-2"><flux:icon name="magnifying-glass" size="xs" /> {{ __('Buscar o ejecutar') }}</span>
+                <kbd class="rounded border border-signal-border px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
+            </button>
         </div>
 
         <flux:sidebar.nav class="gap-y-1">
@@ -188,6 +199,46 @@
     </flux:header>
 
     {{ $slot }}
+
+    <div x-cloak x-show="commandOpen" x-transition.opacity class="fixed inset-0 z-50 flex items-start justify-center bg-signal-canvas/80 px-4 pt-[12vh] backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="command-title">
+        <button type="button" class="absolute inset-0 cursor-default" aria-label="{{ __('Cerrar búsqueda') }}" @click="closeCommand()"></button>
+        <div class="relative w-full max-w-xl overflow-hidden rounded-xl border border-signal-border bg-signal-elevated shadow-2xl" @click.stop>
+            <div class="border-b border-signal-border p-4">
+                <div class="flex items-center gap-3">
+                    <flux:icon name="magnifying-glass" size="sm" class="text-signal-accent" />
+                    <input x-ref="commandInput" x-model="commandQuery" type="search" id="command-title" autocomplete="off"
+                        placeholder="{{ __('Buscar una acción o pantalla...') }}"
+                        class="min-w-0 flex-1 border-0 bg-transparent text-sm text-signal-ink outline-hidden placeholder:text-signal-muted"
+                        aria-label="{{ __('Buscar una acción o pantalla') }}" />
+                    <kbd class="rounded border border-signal-border px-2 py-1 font-mono text-[10px] text-signal-muted">ESC</kbd>
+                </div>
+            </div>
+            <nav class="max-h-[min(28rem,60vh)] overflow-y-auto p-2" aria-label="{{ __('Acciones rápidas') }}">
+                <p class="px-3 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-wider text-signal-muted">{{ __('Ir a') }}</p>
+                <a x-show="!commandQuery || '{{ __('Panel de Control') }}'.toLowerCase().includes(commandQuery.toLowerCase())" href="{{ route('dashboard') }}" wire:navigate @click="closeCommand()" class="signal-focus flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-signal-ink hover:bg-signal-canvas">
+                    <flux:icon name="squares-2x2" size="sm" class="text-signal-info" /> {{ __('Panel de Control') }}
+                </a>
+                <a x-show="!commandQuery || '{{ __('Todos los Tickets') }}'.toLowerCase().includes(commandQuery.toLowerCase())" href="{{ route('tickets.index') }}" wire:navigate @click="closeCommand()" class="signal-focus flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-signal-ink hover:bg-signal-canvas">
+                    <flux:icon name="ticket" size="sm" class="text-signal-warning" /> {{ __('Todos los Tickets') }}
+                </a>
+                <a x-show="!commandQuery || '{{ __('Reportar incidencia') }}'.toLowerCase().includes(commandQuery.toLowerCase())" href="{{ route('tickets.create') }}" wire:navigate @click="closeCommand()" class="signal-focus flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-signal-ink hover:bg-signal-canvas">
+                    <flux:icon name="plus-circle" size="sm" class="text-signal-accent" /> {{ __('Reportar incidencia') }}
+                </a>
+                <a x-show="!commandQuery || '{{ __('Inventario de Equipos') }}'.toLowerCase().includes(commandQuery.toLowerCase())" href="{{ route('equipment.index') }}" wire:navigate @click="closeCommand()" class="signal-focus flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-signal-ink hover:bg-signal-canvas">
+                    <flux:icon name="cpu-chip" size="sm" class="text-signal-success" /> {{ __('Inventario de Equipos') }}
+                </a>
+                <a x-show="!commandQuery || '{{ __('Calendario') }}'.toLowerCase().includes(commandQuery.toLowerCase())" href="{{ route('calendar') }}" wire:navigate @click="closeCommand()" class="signal-focus flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-signal-ink hover:bg-signal-canvas">
+                    <flux:icon name="calendar" size="sm" class="text-signal-secondary" /> {{ __('Calendario') }}
+                </a>
+                @hasanyrole('Admin|Agente')
+                    <a x-show="!commandQuery || '{{ __('Programaciones') }}'.toLowerCase().includes(commandQuery.toLowerCase())" href="{{ route('maintenance-schedules.index') }}" wire:navigate @click="closeCommand()" class="signal-focus flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-signal-ink hover:bg-signal-canvas">
+                        <flux:icon name="clipboard-document-list" size="sm" class="text-signal-info" /> {{ __('Programaciones') }}
+                    </a>
+                @endhasanyrole
+            </nav>
+            <div class="border-t border-signal-border px-4 py-3 text-xs text-signal-muted">{{ __('Usa ⌘K o Ctrl+K para abrir esta búsqueda desde cualquier pantalla.') }}</div>
+        </div>
+    </div>
 
     @fluxScripts
 </body>

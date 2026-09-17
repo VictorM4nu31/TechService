@@ -73,6 +73,23 @@ test('el calendario renderiza la leyenda de mantenimiento', function () {
         ->assertSee('Emergencia');
 });
 
+test('el calendario muestra rutinas preventivas a los agentes', function () {
+    $agent = User::factory()->create()->assignRole('Agente');
+    $equipment = Equipment::factory()->create(['user_id' => $agent->id]);
+
+    MaintenanceSchedule::factory()->create([
+        'equipment_id' => $equipment->id,
+        'name' => 'Revisión de almacenamiento',
+        'next_run_at' => now()->addDay(),
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($agent);
+
+    Livewire\Livewire::test(\App\Livewire\MaintenanceCalendar::class)
+        ->assertSee('Revisión de almacenamiento');
+});
+
 test('el boton hoy vuelve al mes y anio actuales', function () {
     $user = User::factory()->create()->assignRole('Cliente');
     $this->actingAs($user);

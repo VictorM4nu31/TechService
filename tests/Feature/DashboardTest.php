@@ -30,5 +30,6 @@ test('el dashboard muestra los contadores reales de tickets', function () {
     $response->assertOk()
         ->assertSee('Qué necesita atención')
         ->assertSee('Próximas acciones')
+        ->assertSee('Buscar o ejecutar')
         ->assertSee('Solicitud del dashboard');
 });

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\MaintenanceSchedule;
 use App\Models\Ticket;
 use Carbon\Carbon;
 use Illuminate\View\View;
@@ -71,13 +72,37 @@ class MaintenanceCalendar extends Component
         $startDate = Carbon::createFromDate($this->year, $this->month, 1)->startOfMonth();
         $endDate = $startDate->copy()->endOfMonth();
 
-        $query = Ticket::whereBetween('due_date', [$startDate, $endDate])->visibleTo(auth()->user());
-
-        $this->events = $query->with(['equipment'])
+        $tickets = Ticket::whereBetween('due_date', [$startDate, $endDate])
+            ->visibleTo(auth()->user())
+            ->with(['equipment'])
             ->get()
-            ->groupBy(function ($ticket) {
-                return $ticket->due_date->format('j');
-            })
+            ->map(fn (Ticket $ticket): array => [
+                'id' => $ticket->id,
+                'title' => $ticket->title,
+                'category' => $ticket->category->value,
+                'kind' => 'ticket',
+                'date' => $ticket->due_date->format('j'),
+            ]);
+
+        $schedules = collect();
+
+        if (auth()->user()->hasAnyRole(['Admin', 'Agente'])) {
+            $schedules = MaintenanceSchedule::where('is_active', true)
+                ->whereBetween('next_run_at', [$startDate, $endDate])
+                ->with(['equipment'])
+                ->get()
+                ->map(fn (MaintenanceSchedule $schedule): array => [
+                    'id' => $schedule->id,
+                    'title' => $schedule->name,
+                    'category' => 'Preventivo',
+                    'kind' => 'schedule',
+                    'date' => $schedule->next_run_at->format('j'),
+                ]);
+        }
+
+        $this->events = $tickets
+            ->merge($schedules)
+            ->groupBy('date')
             ->toArray();
     }
 
