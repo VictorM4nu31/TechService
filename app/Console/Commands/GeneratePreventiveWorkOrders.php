@@ -8,6 +8,7 @@ use App\Enums\TicketStatus;
 use App\Models\MaintenanceSchedule;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Notifications\TicketActivityNotification;
 use Illuminate\Console\Command;
 
 class GeneratePreventiveWorkOrders extends Command
@@ -41,7 +42,12 @@ class GeneratePreventiveWorkOrders extends Command
         }
 
         foreach ($schedules as $schedule) {
-            $this->generateWorkOrder($schedule, $admin->id);
+            $ticket = $this->generateWorkOrder($schedule, $admin->id);
+            User::role(['Admin', 'Agente'])->where('id', '!=', $admin->id)->get()
+                ->each(fn (User $user): mixed => $user->notify(new TicketActivityNotification(
+                    $ticket,
+                    'Se generó una orden preventiva desde una programación activa.',
+                )));
         }
 
         $this->info("Generated {$schedules->count()} preventive maintenance work orders.");
@@ -49,11 +55,18 @@ class GeneratePreventiveWorkOrders extends Command
         return Command::SUCCESS;
     }
 
-    protected function generateWorkOrder(MaintenanceSchedule $schedule, int $adminId): void
+    protected function generateWorkOrder(MaintenanceSchedule $schedule, int $adminId): Ticket
     {
-        Ticket::create([
+        $checklist = collect($schedule->checklist ?? [])
+            ->map(fn (string $item): string => "- {$item}")
+            ->implode("\n");
+
+        $ticket = Ticket::create([
             'title' => "Mantenimiento Preventivo: {$schedule->name} - {$schedule->equipment->name}",
-            'description' => $schedule->description ?? "Tarea de mantenimiento programada para el equipo {$schedule->equipment->name}.",
+            'description' => collect([
+                $schedule->description ?? "Tarea de mantenimiento programada para el equipo {$schedule->equipment->name}.",
+                $checklist !== '' ? "Checklist técnico:\n{$checklist}" : null,
+            ])->filter()->implode("\n\n"),
             'status' => TicketStatus::Abierto,
             'priority' => TicketPriority::Media,
             'category' => TicketCategory::Preventivo,
@@ -67,5 +80,7 @@ class GeneratePreventiveWorkOrders extends Command
             'last_run_at' => now(),
             'next_run_at' => now()->addDays($schedule->frequency_days),
         ]);
+
+        return $ticket;
     }
 }

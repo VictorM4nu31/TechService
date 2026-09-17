@@ -23,8 +23,13 @@ class DashboardController extends Controller
                 'in_progress' => Ticket::visibleTo($user)->where('status', TicketStatus::EnProgreso)->count(),
                 'resolved' => Ticket::visibleTo($user)->where('status', TicketStatus::Cerrado)->count(),
                 'overdue' => Ticket::visibleTo($user)
-                    ->whereNotNull('due_date')
-                    ->where('due_date', '<', now())
+                    ->where(function ($query): void {
+                        $query->where(function ($slaQuery): void {
+                            $slaQuery->whereNotNull('sla_due_at')->where('sla_due_at', '<', now());
+                        })->orWhere(function ($legacyQuery): void {
+                            $legacyQuery->whereNull('sla_due_at')->whereNotNull('due_date')->where('due_date', '<', now());
+                        });
+                    })
                     ->where('status', '!=', TicketStatus::Cerrado)
                     ->count(),
                 'unassigned' => Ticket::visibleTo($user)

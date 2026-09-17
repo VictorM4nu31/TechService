@@ -60,6 +60,29 @@
             </form>
         </flux:card>
 
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-semibold uppercase tracking-wider text-signal-muted">{{ __('Vistas guardadas') }}</span>
+                @foreach($savedViews as $savedView)
+                    <a href="{{ route('tickets.index', $savedView->filters) }}" wire:navigate class="signal-focus rounded-full border border-signal-border px-3 py-1.5 text-xs text-signal-muted hover:border-signal-accent/60 hover:text-signal-ink">{{ $savedView->name }}</a>
+                @endforeach
+                @if($savedViews->isEmpty())
+                    <span class="text-xs text-signal-muted">{{ __('Guarda una cola que uses con frecuencia.') }}</span>
+                @endif
+            </div>
+            @if($filtersActive)
+                <form method="POST" action="{{ route('ticket-views.store') }}" class="flex items-center gap-2">
+                    @csrf
+                    <input type="hidden" name="filters[search]" value="{{ request('search') }}">
+                    <input type="hidden" name="filters[status]" value="{{ request('status') }}">
+                    <input type="hidden" name="filters[category]" value="{{ request('category') }}">
+                    <label for="saved-view-name" class="sr-only">{{ __('Nombre de la vista') }}</label>
+                    <input id="saved-view-name" name="name" required maxlength="80" placeholder="{{ __('Nombre de la vista') }}" class="w-44 rounded-lg border border-signal-border bg-signal-surface px-3 py-2 text-xs text-signal-ink outline-hidden focus:border-signal-accent">
+                    <flux:button type="submit" size="sm" variant="ghost" icon="bookmark">{{ __('Guardar') }}</flux:button>
+                </form>
+            @endif
+        </div>
+
         @if (session('status'))
             <div
                 class="flex items-center gap-3 rounded-lg border border-signal-success/30 bg-signal-success/10 px-4 py-3 text-sm text-signal-success">
@@ -88,8 +111,9 @@
                     </div>
                     <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-signal-muted">
                         <span>{{ $ticket->category->label() }}</span>
+                        <span>{{ __('Impacto') }}: {{ $ticket->impact?->label() ?? __('Medio') }}</span>
                         <span>{{ $ticket->equipment?->name ?? __('Sin equipo') }}</span>
-                        <span>{{ $ticket->created_at->diffForHumans() }}</span>
+                        <span>{{ $ticket->sla_due_at ? __('SLA :date', ['date' => $ticket->sla_due_at->diffForHumans()]) : $ticket->created_at->diffForHumans() }}</span>
                     </div>
                 </a>
             @empty
@@ -105,6 +129,7 @@
                     <flux:table.column>{{ __('Título') }}</flux:table.column>
                     <flux:table.column>{{ __('Estado') }}</flux:table.column>
                     <flux:table.column>{{ __('Prioridad') }}</flux:table.column>
+                    <flux:table.column>{{ __('Señal') }}</flux:table.column>
                     <flux:table.column>{{ __('Categoría') }}</flux:table.column>
                     <flux:table.column>{{ __('Creado por') }}</flux:table.column>
                     <flux:table.column>{{ __('Asignado a') }}</flux:table.column>
@@ -128,6 +153,14 @@
                                     {{ $ticket->priority->label() }}
                                 </flux:badge>
                             </flux:table.cell>
+                            <flux:table.cell>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-xs text-signal-muted">{{ __('Impacto') }}: {{ $ticket->impact?->label() ?? __('Medio') }}</span>
+                                    <span class="font-mono text-[10px] {{ $ticket->sla_due_at && $ticket->sla_due_at->isPast() && $ticket->status->value !== 'Cerrado' ? 'text-signal-error' : 'text-signal-muted' }}">
+                                        {{ $ticket->sla_due_at ? $ticket->sla_due_at->diffForHumans() : __('Sin SLA') }}
+                                    </span>
+                                </div>
+                            </flux:table.cell>
                             <flux:table.cell>{{ $ticket->category->label() }}</flux:table.cell>
                             <flux:table.cell>{{ $ticket->creator->name }}</flux:table.cell>
                             <flux:table.cell>{{ $ticket->assignee?->name ?? __('Sin asignar') }}</flux:table.cell>
@@ -140,7 +173,7 @@
                         </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="8" class="text-center py-8 text-zinc-500">
+                            <flux:table.cell colspan="9" class="text-center py-8 text-zinc-500">
                                 {{ __('No hay tickets que coincidan con los criterios.') }}
                             </flux:table.cell>
                         </flux:table.row>

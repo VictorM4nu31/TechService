@@ -121,6 +121,26 @@
                     </div>
                 </flux:card>
 
+                <flux:card class="signal-panel space-y-4">
+                    <div>
+                        <p class="signal-kicker">{{ __('Triage') }}</p>
+                        <flux:heading size="md" class="mt-2">{{ __('Impacto y urgencia') }}</flux:heading>
+                        <flux:text size="sm" class="mt-1 text-signal-muted">{{ __('Ayuda a ordenar la atención sin confundir prioridad con alcance.') }}</flux:text>
+                    </div>
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <flux:select wire:model="impact" label="{{ __('Impacto') }}">
+                            <flux:select.option value="Bajo">{{ __('Bajo · una persona o equipo') }}</flux:select.option>
+                            <flux:select.option value="Medio">{{ __('Medio · un área') }}</flux:select.option>
+                            <flux:select.option value="Alto">{{ __('Alto · operación detenida') }}</flux:select.option>
+                        </flux:select>
+                        <flux:select wire:model="urgency" label="{{ __('Urgencia') }}">
+                            <flux:select.option value="Bajo">{{ __('Baja · puede esperar') }}</flux:select.option>
+                            <flux:select.option value="Medio">{{ __('Media · atender hoy') }}</flux:select.option>
+                            <flux:select.option value="Alto">{{ __('Alta · atención inmediata') }}</flux:select.option>
+                        </flux:select>
+                    </div>
+                </flux:card>
+
                 {{-- Categoría --}}
                 <flux:card class="signal-panel space-y-4">
                     <flux:heading size="md">{{ __('Categoría') }}</flux:heading>
@@ -164,6 +184,15 @@
 
                 {{-- Actions --}}
                 <div class="grid gap-3 pt-4">
+                    @if (session('draft-saved'))
+                        <div class="rounded-lg border border-signal-success/30 bg-signal-success/10 px-3 py-2 text-xs text-signal-success" role="status">
+                            {{ session('draft-saved') }}
+                        </div>
+                    @endif
+                    <flux:button wire:click="saveDraft" wire:loading.attr="disabled" wire:target="saveDraft" variant="ghost" icon="bookmark" class="w-full">
+                        <span wire:loading.remove wire:target="saveDraft">{{ __('Guardar borrador') }}</span>
+                        <span wire:loading wire:target="saveDraft">{{ __('Guardando borrador...') }}</span>
+                    </flux:button>
                     <flux:button wire:click="save" wire:loading.attr="disabled" wire:target="save" variant="primary"
                         class="w-full bg-signal-accent font-bold text-signal-ink shadow-lg shadow-signal-accent/10 hover:bg-signal-accent/85">
                         <span wire:loading.remove wire:target="save">{{ __('Crear Ticket') }}</span>

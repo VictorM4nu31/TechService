@@ -27,6 +27,11 @@
                     placeholder="{{ __('Detalles de la tarea de mantenimiento...') }}">{{ old('description') }}</flux:textarea>
                 @error('description') <flux:text class="text-red-400 text-xs mt-1">{{ $message }}</flux:text> @enderror
 
+                <flux:textarea name="checklist" label="{{ __('Checklist técnico') }}" rows="5"
+                    placeholder="{{ __('Una verificación por línea: revisar ventiladores...') }}">{{ old('checklist') }}</flux:textarea>
+                <flux:text size="xs" class="text-signal-muted">{{ __('Escribe cada paso en una línea para convertir la rutina en una intervención verificable.') }}</flux:text>
+                @error('checklist') <flux:text class="text-red-400 text-xs mt-1">{{ $message }}</flux:text> @enderror
+
                 <div class="grid md:grid-cols-2 gap-4">
                     <div>
                         <flux:input name="frequency_days" type="number" min="1"

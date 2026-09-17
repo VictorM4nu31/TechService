@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\Comment;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Notifications\TicketActivityNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
@@ -19,6 +20,7 @@ class TicketService
         $this->logActivity($ticket, 'created', 'creó el ticket');
 
         $this->invalidateCache($ticket);
+        $this->notifyUsers($ticket, 'Nueva incidencia registrada.');
 
         return $ticket;
     }
@@ -33,6 +35,7 @@ class TicketService
         $this->logActivity($ticket, 'assigned', "asignó el ticket a {$user->name}", ['assigned_to' => $userId]);
 
         $this->invalidateCache($ticket);
+        $this->notifyUsers($ticket, "La incidencia fue asignada a {$user->name}.");
     }
 
     public function addComment(Ticket $ticket, string $content, array $attachments = []): Comment
@@ -47,6 +50,7 @@ class TicketService
         }
 
         $this->logActivity($ticket, 'commented', 'comentó en el ticket', ['comment_id' => $comment->id]);
+        $this->notifyUsers($ticket, 'Hay un nuevo comentario en una incidencia que sigues.');
 
         return $comment;
     }
@@ -62,6 +66,7 @@ class TicketService
         ]);
 
         $this->invalidateCache($ticket);
+        $this->notifyUsers($ticket, "El estado cambió a {$newStatus->label()}.");
     }
 
     public function resolveTicket(Ticket $ticket): void
@@ -95,5 +100,16 @@ class TicketService
             Cache::forget("dashboard:{$userId}");
             Cache::forget("sidebar:{$userId}");
         }
+    }
+
+    protected function notifyUsers(Ticket $ticket, string $message): void
+    {
+        $recipients = collect([$ticket->creator, $ticket->assignee])
+            ->filter()
+            ->reject(fn (User $user): bool => $user->is(auth()->user()))
+            ->merge(User::role(['Admin', 'Agente'])->get())
+            ->unique('id');
+
+        $recipients->each(fn (User $user): mixed => $user->notify(new TicketActivityNotification($ticket, $message)));
     }
 }

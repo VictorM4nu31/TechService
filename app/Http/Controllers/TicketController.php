@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSavedViewRequest;
+use App\Models\SavedView;
 use App\Models\Ticket;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,7 +33,29 @@ class TicketController extends Controller
             ->latest()
             ->paginate(15);
 
-        return view('tickets.index', compact('tickets'));
+        $savedViews = SavedView::query()
+            ->where(function ($query): void {
+                $query->where('user_id', auth()->id())->orWhere('is_shared', true);
+            })
+            ->latest()
+            ->get();
+
+        return view('tickets.index', compact('tickets', 'savedViews'));
+    }
+
+    public function storeView(StoreSavedViewRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        $filters = array_filter($data['filters']);
+
+        SavedView::create([
+            'user_id' => auth()->id(),
+            'name' => $data['name'],
+            'filters' => $filters,
+        ]);
+
+        return redirect()->route('tickets.index', $filters)
+            ->with('status', __('Vista guardada.'));
     }
 
     public function create(): View
@@ -43,7 +67,12 @@ class TicketController extends Controller
     {
         $this->authorize('view', $ticket);
 
-        $ticket->load(['creator', 'assignee', 'equipment', 'comments.user', 'comments.media']);
+        $ticket->load([
+            'creator',
+            'assignee',
+            'equipment',
+            'comments' => fn ($query) => $query->with(['user', 'media'])->latest()->limit(50),
+        ]);
 
         return view('tickets.show', compact('ticket'));
     }

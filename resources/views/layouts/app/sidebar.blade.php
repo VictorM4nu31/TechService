@@ -10,6 +10,9 @@
     @keydown.window.meta.k.prevent="openCommand()"
     @keydown.window.ctrl.k.prevent="openCommand()"
     @keydown.window.escape="closeCommand()">
+    <a href="#main-content" class="sr-only fixed left-4 top-4 z-[70] rounded-lg bg-signal-accent px-4 py-2 text-sm font-semibold text-signal-ink focus:not-sr-only focus:outline-hidden focus:ring-2 focus:ring-signal-ink">
+        {{ __('Saltar al contenido') }}
+    </a>
     <flux:sidebar sticky collapsible="mobile"
         class="border-e border-signal-border bg-signal-surface dark:border-signal-border dark:bg-signal-surface">
         <flux:sidebar.header class="pb-2!">
@@ -44,6 +47,10 @@
                 <span class="flex items-center gap-2"><flux:icon name="magnifying-glass" size="xs" /> {{ __('Buscar o ejecutar') }}</span>
                 <kbd class="rounded border border-signal-border px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
             </button>
+        </div>
+
+        <div class="px-3 pb-2">
+            <livewire:notification-bell />
         </div>
 
         <flux:sidebar.nav class="gap-y-1">

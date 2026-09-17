@@ -1,7 +1,9 @@
 <?php
 
 use App\Enums\TicketCategory;
+use App\Enums\TicketImpact;
 use App\Enums\TicketPriority;
+use App\Enums\TicketUrgency;
 use App\Models\Ticket;
 use App\Models\Equipment;
 use App\Services\TicketService;
@@ -14,6 +16,8 @@ state([
     'equipment_id' => fn ($ticket) => $ticket->equipment_id,
     'location' => fn ($ticket) => $ticket->location,
     'priority' => fn ($ticket) => $ticket->priority->value,
+    'impact' => fn ($ticket) => $ticket->impact?->value ?? 'Medio',
+    'urgency' => fn ($ticket) => $ticket->urgency?->value ?? 'Medio',
     'category' => fn ($ticket) => $ticket->category->value,
     'maintenance_type' => fn ($ticket) => $ticket->maintenance_type,
 ]);
@@ -55,6 +59,8 @@ $save = function (TicketService $ticketService) {
         'equipment_id' => $this->equipment_id ?: null,
         'location' => $this->location,
         'priority' => $this->priority,
+        'impact' => $this->impact,
+        'urgency' => $this->urgency,
         'category' => $this->category,
         'maintenance_type' => $this->maintenance_type,
     ]);
@@ -146,6 +152,20 @@ $equipments = computed(fn () => Equipment::query()->visibleToUser(auth()->user()
                             </button>
                         @endforeach
                     </div>
+                </flux:card>
+
+                <flux:card class="bg-zinc-900 border-zinc-800 space-y-4">
+                    <flux:heading size="md">{{ __('Triage operativo') }}</flux:heading>
+                    <flux:select wire:model="impact" label="{{ __('Impacto') }}">
+                        @foreach (TicketImpact::cases() as $impactOption)
+                            <flux:select.option value="{{ $impactOption->value }}">{{ $impactOption->label() }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:select wire:model="urgency" label="{{ __('Urgencia') }}">
+                        @foreach (TicketUrgency::cases() as $urgencyOption)
+                            <flux:select.option value="{{ $urgencyOption->value }}">{{ $urgencyOption->label() }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
                 </flux:card>
 
                 <flux:card class="bg-zinc-900 border-zinc-800 space-y-4">

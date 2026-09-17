@@ -53,7 +53,7 @@
                 </div>
                 <div class="mt-5 flex items-end justify-between gap-4">
                     <span class="font-mono text-4xl font-medium tracking-tight text-signal-ink">{{ $stats['overdue'] }}</span>
-                    <span class="pb-1 text-right text-xs text-signal-muted">{{ __('vencidos') }}</span>
+                    <span class="pb-1 text-right text-xs text-signal-muted">{{ __('SLA vencido') }}</span>
                 </div>
             </a>
 

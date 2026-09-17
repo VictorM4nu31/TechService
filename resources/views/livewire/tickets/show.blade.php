@@ -273,6 +273,21 @@ $recentActivities = computed(fn () => $this->ticket->activities()->latest()->tak
                         </div>
 
                         <div>
+                            <flux:text size="xs" class="text-zinc-500 uppercase font-bold">{{ __('Señal operativa') }}</flux:text>
+                            <div class="mt-1 flex flex-wrap gap-2">
+                                <flux:badge :color="$ticket->impact?->color() ?? 'yellow'" variant="outline">{{ __('Impacto') }}: {{ $ticket->impact?->label() ?? __('Medio') }}</flux:badge>
+                                <flux:badge :color="$ticket->urgency?->color() ?? 'yellow'" variant="outline">{{ __('Urgencia') }}: {{ $ticket->urgency?->label() ?? __('Media') }}</flux:badge>
+                            </div>
+                        </div>
+
+                        <div>
+                            <flux:text size="xs" class="text-zinc-500 uppercase font-bold">{{ __('SLA') }}</flux:text>
+                            <flux:text class="mt-1 font-medium {{ $ticket->sla_due_at && $ticket->sla_due_at->isPast() && $ticket->status->value !== 'Cerrado' ? 'text-red-400' : 'text-zinc-200' }}">
+                                {{ $ticket->sla_due_at?->format('d/m/Y H:i') ?? __('Sin SLA definido') }}
+                            </flux:text>
+                        </div>
+
+                        <div>
                             <flux:text size="xs" class="text-zinc-500 uppercase font-bold">{{ __('Categoría') }}
                             </flux:text>
                             <div class="flex items-center gap-2 mt-1">

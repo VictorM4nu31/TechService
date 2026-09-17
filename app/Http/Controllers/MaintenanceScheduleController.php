@@ -37,6 +37,7 @@ class MaintenanceScheduleController extends Controller
 
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
+        $data['checklist'] = $this->parseChecklist($data['checklist'] ?? null);
 
         MaintenanceSchedule::create($data);
 
@@ -60,6 +61,7 @@ class MaintenanceScheduleController extends Controller
 
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
+        $data['checklist'] = $this->parseChecklist($data['checklist'] ?? null);
 
         $maintenanceSchedule->update($data);
 
@@ -77,5 +79,17 @@ class MaintenanceScheduleController extends Controller
         session()->flash('status', __('Programación eliminada.'));
 
         return redirect()->route('maintenance-schedules.index');
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function parseChecklist(?string $checklist): array
+    {
+        return collect(preg_split('/\r\n|\r|\n/', $checklist ?? '') ?: [])
+            ->map(fn (string $item): string => trim($item))
+            ->filter()
+            ->values()
+            ->all();
     }
 }

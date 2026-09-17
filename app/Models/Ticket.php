@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use App\Enums\TicketCategory;
+use App\Enums\TicketImpact;
 use App\Enums\TicketPriority;
 use App\Enums\TicketStatus;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Enums\TicketUrgency;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -23,11 +25,14 @@ class Ticket extends Model implements HasMedia
         'description',
         'status',
         'priority',
+        'impact',
+        'urgency',
         'category',
         'assigned_to',
         'created_by',
         'team_id',
         'due_date',
+        'sla_due_at',
         'equipment_id',
         'location',
         'maintenance_type',
@@ -37,8 +42,11 @@ class Ticket extends Model implements HasMedia
     {
         return [
             'due_date' => 'datetime',
+            'sla_due_at' => 'datetime',
             'status' => TicketStatus::class,
             'priority' => TicketPriority::class,
+            'impact' => TicketImpact::class,
+            'urgency' => TicketUrgency::class,
             'category' => TicketCategory::class,
         ];
     }

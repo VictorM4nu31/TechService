@@ -14,6 +14,7 @@ class MaintenanceSchedule extends Model
         'equipment_id',
         'name',
         'description',
+        'checklist',
         'frequency_days',
         'last_run_at',
         'next_run_at',
@@ -24,6 +25,7 @@ class MaintenanceSchedule extends Model
         'last_run_at' => 'datetime',
         'next_run_at' => 'datetime',
         'is_active' => 'boolean',
+        'checklist' => 'array',
     ];
 
     public function equipment(): BelongsTo

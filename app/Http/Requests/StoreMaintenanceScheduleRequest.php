@@ -20,6 +20,7 @@ class StoreMaintenanceScheduleRequest extends FormRequest
             'equipment_id' => ['required', 'exists:equipment,id'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
+            'checklist' => ['nullable', 'string', 'max:5000'],
             'frequency_days' => ['required', 'integer', 'min:1', 'max:3650'],
             'next_run_at' => ['nullable', 'date'],
             'is_active' => ['nullable', 'boolean'],
