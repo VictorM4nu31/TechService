@@ -30,7 +30,7 @@ class DatabaseSeeder extends Seeder
 
         $agents = [];
         foreach ($agentNames as $index => $name) {
-            $email = 'agent' . ($index + 1) . '@techservice.com';
+            $email = 'agent'.($index + 1).'@techservice.com';
             $agent = User::updateOrCreate(
                 ['email' => $email],
                 ['name' => $name, 'password' => bcrypt('password')]
@@ -53,7 +53,7 @@ class DatabaseSeeder extends Seeder
 
         $clients = [];
         foreach ($clientNames as $index => $name) {
-            $email = 'client' . ($index + 1) . '@techservice.com';
+            $email = 'client'.($index + 1).'@techservice.com';
             $client = User::updateOrCreate(
                 ['email' => $email],
                 ['name' => $name, 'password' => bcrypt('password')]
@@ -66,5 +66,6 @@ class DatabaseSeeder extends Seeder
         $this->call(ClientSeeder::class);
         $this->call(EquipmentSeeder::class);
         $this->call(TicketSeeder::class);
+        $this->call(MaintenanceScheduleSeeder::class);
     }
 }
